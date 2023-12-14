@@ -24,8 +24,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using System.Text.RegularExpressions;
-
 using UnityEngine;
 
 namespace LunarConsolePluginInternal
@@ -33,6 +31,14 @@ namespace LunarConsolePluginInternal
     public static class StringUtils
     {
         private static readonly char[] kSpaceSplitChars = { ' ' };
+
+        //////////////////////////////////////////////////////////////////////////////
+
+        private static readonly string Quote = "\"";
+        private static readonly string SingleQuote = "'";
+
+        private static readonly string EscapedQuote = "\\\"";
+        private static readonly string EscapedSingleQuote = "\\'";
 
         internal static string TryFormat(string format, params object[] args)
         {
@@ -82,6 +88,113 @@ namespace LunarConsolePluginInternal
             return result;
         }
 
+        internal static string Arg(string value)
+        {
+            if (value != null && value.Length > 0)
+            {
+                value = value.Replace(Quote, EscapedQuote);
+                value = value.Replace(SingleQuote, EscapedSingleQuote);
+
+                if (value.IndexOf(' ') != -1)
+                {
+                    value = TryFormat("\"{0}\"", value);
+                }
+
+                return value;
+            }
+
+            return "\"\"";
+        }
+
+        internal static string UnArg(string value)
+        {
+            if (value != null && value.Length > 0)
+            {
+                if ((value.StartsWith(Quote) && value.EndsWith(Quote)) ||
+                    (value.StartsWith(SingleQuote) && value.EndsWith(SingleQuote)))
+                {
+                    value = value.Substring(1, value.Length - 2);
+                }
+
+                value = value.Replace(EscapedQuote, Quote);
+                value = value.Replace(EscapedSingleQuote, SingleQuote);
+
+                return value;
+            }
+
+            return "";
+        }
+
+        //////////////////////////////////////////////////////////////////////////////
+
+        #region Null and stuff
+
+        internal static string NonNullOrEmpty(string str)
+        {
+            return str != null ? str : "";
+        }
+
+        #endregion
+
+        #region Display name
+
+        public static string ToDisplayName(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+
+            var result = new StringBuilder();
+
+            var prevChr = '\0';
+            for (var i = 0; i < value.Length; ++i)
+            {
+                char chr = value[i];
+
+                if (i == 0)
+                {
+                    chr = char.ToUpper(chr);
+                }
+                else if (char.IsUpper(chr) || (char.IsDigit(chr) && !char.IsDigit(prevChr)))
+                {
+                    if (result.Length > 0)
+                    {
+                        result.Append(' ');
+                    }
+                }
+
+                result.Append(chr);
+
+                prevChr = chr;
+            }
+
+            return result.ToString();
+        }
+
+        #endregion
+
+        #region Serialization
+
+        public static IDictionary<string, string> DeserializeString(string data)
+        {
+            // can't use Json here since Unity doesn't support Json-to-Dictionary deserialization
+            // don't want to use 3rd party so custom format it is
+            string[] lines = data.Split('\n');
+            IDictionary<string, string> dict = new Dictionary<string, string>();
+            foreach (string line in lines)
+            {
+                int index = line.IndexOf(':');
+                string key = line.Substring(0, index);
+                string value = line.Substring(index + 1, line.Length - (index + 1)).Replace(@"\n", "\n"); // restore new lines
+                dict[key] = value;
+            }
+
+            return dict;
+        }
+
+        #endregion
+
         //////////////////////////////////////////////////////////////////////////////
 
         #region Parsing
@@ -92,7 +205,7 @@ namespace LunarConsolePluginInternal
         }
 
         public static int ParseInt(string str, int defValue)
-        {   
+        {
             if (!string.IsNullOrEmpty(str))
             {
                 int value;
@@ -185,8 +298,8 @@ namespace LunarConsolePluginInternal
         {
             if (args != null)
             {
-                float[] floats = new float[args.Length];
-                for (int i = 0; i < args.Length; ++i)
+                var floats = new float[args.Length];
+                for (var i = 0; i < args.Length; ++i)
                 {
                     if (!float.TryParse(args[i], out floats[i]))
                     {
@@ -372,8 +485,8 @@ namespace LunarConsolePluginInternal
         {
             if (value != null)
             {
-                int count = 0;
-                for (int i = 0; i < value.Length; ++i)
+                var count = 0;
+                for (var i = 0; i < value.Length; ++i)
                 {
                     if (value[i] == '\n')
                     {
@@ -415,8 +528,14 @@ namespace LunarConsolePluginInternal
                 return null;
             }
 
-            if (s_tempList == null) s_tempList = new List<string>(); // TODO: use 'recyclable' list
-            else s_tempList.Clear();
+            if (s_tempList == null)
+            {
+                s_tempList = new List<string>(); // TODO: use 'recyclable' list
+            }
+            else
+            {
+                s_tempList.Clear();
+            }
 
             foreach (string str in strings)
             {
@@ -442,27 +561,38 @@ namespace LunarConsolePluginInternal
 
         private static string GetSuggestedTextFiltered0(string token, IList strings)
         {
-            if (token == null) return null;
-            if (strings.Count == 0) return null;
-            if (strings.Count == 1) return (string)strings[0];
+            if (token == null)
+            {
+                return null;
+            }
 
-            string firstString = (string)strings[0];
+            if (strings.Count == 0)
+            {
+                return null;
+            }
+
+            if (strings.Count == 1)
+            {
+                return (string)strings[0];
+            }
+
+            var firstString = (string)strings[0];
             if (token.Length == 0)
             {
                 token = firstString;
             }
 
-            StringBuilder suggestedToken = new StringBuilder();
+            var suggestedToken = new StringBuilder();
 
-            for (int charIndex = 0; charIndex < firstString.Length; ++charIndex)
+            for (var charIndex = 0; charIndex < firstString.Length; ++charIndex)
             {
                 char chr = firstString[charIndex];
                 char chrLower = char.ToLower(chr);
 
-                bool searchFinished = false;
-                for (int strIndex = 1; strIndex < strings.Count; ++strIndex)
+                var searchFinished = false;
+                for (var strIndex = 1; strIndex < strings.Count; ++strIndex)
                 {
-                    string otherString = (string)strings[strIndex];
+                    var otherString = (string)strings[strIndex];
                     if (charIndex >= otherString.Length || char.ToLower(otherString[charIndex]) != chrLower)
                     {
                         searchFinished = true;
@@ -485,69 +615,13 @@ namespace LunarConsolePluginInternal
 
         //////////////////////////////////////////////////////////////////////////////
 
-        private static readonly string Quote = "\"";
-        private static readonly string SingleQuote = "'";
-
-        private static readonly string EscapedQuote = "\\\"";
-        private static readonly string EscapedSingleQuote = "\\'";
-
-        internal static string Arg(string value)
-        {
-            if (value != null && value.Length > 0)
-            {
-                value = value.Replace(Quote, EscapedQuote);
-                value = value.Replace(SingleQuote, EscapedSingleQuote);
-
-                if (value.IndexOf(' ') != -1)
-                {
-                    value = StringUtils.TryFormat("\"{0}\"", value);
-                }
-
-                return value;
-            }
-
-            return "\"\"";
-        }
-
-        internal static string UnArg(string value)
-        {
-            if (value != null && value.Length > 0)
-            {
-                if (value.StartsWith(Quote) && value.EndsWith(Quote) ||
-                    value.StartsWith(SingleQuote) && value.EndsWith(SingleQuote))
-                {
-                    value = value.Substring(1, value.Length - 2);
-                }
-
-                value = value.Replace(EscapedQuote, Quote);
-                value = value.Replace(EscapedSingleQuote, SingleQuote);
-
-                return value;
-            }
-
-            return "";
-        }
-
-        //////////////////////////////////////////////////////////////////////////////
-
-        #region Null and stuff
-
-        internal static string NonNullOrEmpty(string str)
-        {
-            return str != null ? str : "";
-        }
-
-        #endregion
-
-        //////////////////////////////////////////////////////////////////////////////
-
         #region string representation
 
         internal static string ToString(object value)
         {
             return value != null ? value.ToString() : null;
         }
-        
+
         internal static string ToString(int value)
         {
             return value.ToString();
@@ -567,125 +641,71 @@ namespace LunarConsolePluginInternal
         {
             if (value.a > 0.0f)
             {
-                return string.Format("{0} {1} {2} {3}", 
-                    value.r.ToString("G"), 
-                    value.g.ToString("G"), 
-                    value.b.ToString("G"), 
+                return string.Format("{0} {1} {2} {3}",
+                    value.r.ToString("G"),
+                    value.g.ToString("G"),
+                    value.b.ToString("G"),
                     value.a.ToString("G")
                 );
             }
 
-            return string.Format("{0} {1} {2}", 
-                value.r.ToString("G"), 
-                value.g.ToString("G"), 
+            return string.Format("{0} {1} {2}",
+                value.r.ToString("G"),
+                value.g.ToString("G"),
                 value.b.ToString("G")
             );
         }
 
         internal static string ToString(ref Rect value)
         {
-            return string.Format("{0} {1} {2} {3}", 
-                value.x.ToString("G"), 
-                value.y.ToString("G"), 
-                value.width.ToString("G"), 
+            return string.Format("{0} {1} {2} {3}",
+                value.x.ToString("G"),
+                value.y.ToString("G"),
+                value.width.ToString("G"),
                 value.height.ToString("G")
             );
         }
 
         internal static string ToString(ref Vector2 value)
         {
-            return string.Format("{0} {1}", 
-                value.x.ToString("G"), 
+            return string.Format("{0} {1}",
+                value.x.ToString("G"),
                 value.y.ToString("G")
             );
         }
 
         internal static string ToString(ref Vector3 value)
         {
-            return string.Format("{0} {1} {2}", 
-                value.x.ToString("G"), 
-                value.y.ToString("G"), 
+            return string.Format("{0} {1} {2}",
+                value.x.ToString("G"),
+                value.y.ToString("G"),
                 value.z.ToString("G")
             );
         }
 
         internal static string ToString(ref Vector4 value)
         {
-            return string.Format("{0} {1} {2} {3}", 
-                value.x.ToString("G"), 
-                value.y.ToString("G"), 
-                value.z.ToString("G"), 
+            return string.Format("{0} {1} {2} {3}",
+                value.x.ToString("G"),
+                value.y.ToString("G"),
+                value.z.ToString("G"),
                 value.w.ToString("G")
             );
         }
 
         public static string Join<T>(IList<T> list, string separator = ",")
         {
-            StringBuilder builder = new StringBuilder();
-            for (int i = 0; i < list.Count; ++i)
+            var builder = new StringBuilder();
+            for (var i = 0; i < list.Count; ++i)
             {
                 builder.Append(list[i]);
-                if (i < list.Count-1) builder.Append(separator);
+                if (i < list.Count - 1)
+                {
+                    builder.Append(separator);
+                }
             }
+
             return builder.ToString();
-        }
-
-        #endregion
-
-        #region Display name
-
-        public static String ToDisplayName(string value)
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                return value;
-            }
-
-            StringBuilder result = new StringBuilder();
-
-            char prevChr = '\0';
-            for (int i = 0; i < value.Length; ++i)
-            {
-                var chr = value[i];
-
-                if (i == 0)
-                {
-                    chr = Char.ToUpper(chr);
-                }
-                else if (Char.IsUpper(chr) || Char.IsDigit(chr) && !Char.IsDigit(prevChr))
-                {
-                    if (result.Length > 0)
-                    {
-                        result.Append(' ');
-                    }
-                }
-
-                result.Append(chr);
-
-                prevChr = chr;
-            }
-
-            return result.ToString();
-        }
-
-        #endregion
-
-        #region Serialization
-
-        public static IDictionary<string, string> DeserializeString(string data)
-        {
-            // can't use Json here since Unity doesn't support Json-to-Dictionary deserialization
-            // don't want to use 3rd party so custom format it is
-            string[] lines = data.Split('\n');
-            IDictionary<string, string> dict = new Dictionary<string, string>();
-            foreach (string line in lines)
-            {
-                int index = line.IndexOf(':');
-                string key = line.Substring(0, index);
-                string value = line.Substring(index + 1, line.Length - (index + 1)).Replace(@"\n", "\n"); // restore new lines
-                dict[key] = value;
-            }
-            return dict;
         }
 
         #endregion

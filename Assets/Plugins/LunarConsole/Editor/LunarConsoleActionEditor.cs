@@ -21,22 +21,19 @@
 
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-
-using UnityEngine;
+using System.Text;
+using LunarConsolePluginInternal;
 using UnityEditor;
 using UnityEditorInternal;
-
-using LunarConsolePlugin;
-using LunarConsolePluginInternal;
-using System.Text;
+using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace LunarConsoleEditorInternal
 {
     [CustomEditor(typeof(LunarConsoleAction))]
-    class LunarConsoleActionEditor : Editor
+    internal class LunarConsoleActionEditor : Editor
     {
         private const string kPropCalls = "m_calls";
         private const string kPropMode = "m_mode";
@@ -45,54 +42,7 @@ namespace LunarConsoleEditorInternal
         private const string kPropArguments = "m_arguments";
 
         private const string kPropObjectArgumentAssemblyTypeName = "m_objectArgumentAssemblyTypeName";
-        ReorderableList list;
-
-        struct Function
-        {
-            public readonly UnityEngine.Object target;
-            public readonly MethodInfo method;
-
-            public Function(UnityEngine.Object target, MethodInfo method)
-            {
-                this.target = target;
-                this.method = method;
-            }
-
-            public bool isProperty
-            {
-                get { return method.IsSpecialName && method.Name.StartsWith("set_"); }
-            }
-
-            public string simpleName
-            {
-                get { return isProperty ? method.Name.Substring("set_".Length) : method.Name; }
-            }
-
-            public Type paramType
-            {
-                get
-                {
-                    var methodParams = method.GetParameters();
-                    return methodParams.Length > 0 ? methodParams[0].ParameterType : null;
-                }
-            }
-
-            public string displayName
-            {
-                get
-                {
-                    var functionParamType = paramType;
-                    if (functionParamType != null)
-                    {
-                        var typeName = ClassUtils.TypeShortName(functionParamType);
-                        return isProperty ?
-                            string.Format("{0} {1}", typeName, simpleName) :
-                            string.Format("{0} ({1})", simpleName, typeName);
-                    }
-                    return string.Format("{0} ()", simpleName);
-                }
-            }
-        }
+        private ReorderableList list;
 
         private void OnEnable()
         {
@@ -101,7 +51,7 @@ namespace LunarConsoleEditorInternal
             list.drawElementCallback = DrawListElement;
             list.elementHeight = 43;
         }
-        
+
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
@@ -111,12 +61,12 @@ namespace LunarConsoleEditorInternal
             serializedObject.ApplyModifiedProperties();
         }
 
-        void DrawListHeader(Rect rect)
+        private void DrawListHeader(Rect rect)
         {
             EditorGUI.LabelField(rect, "On Click ()");
         }
 
-        void DrawListElement(Rect rect, int index, bool isActive, bool isFocused)
+        private void DrawListElement(Rect rect, int index, bool isActive, bool isFocused)
         {
             SerializedProperty arrayElementAtIndex = list.serializedProperty.GetArrayElementAtIndex(index);
             rect.y += 1f;
@@ -133,7 +83,7 @@ namespace LunarConsoleEditorInternal
             Color backgroundColor = GUI.backgroundColor;
             GUI.backgroundColor = Color.white;
 
-            var oldFlag = GUI.enabled;
+            bool oldFlag = GUI.enabled;
             GUI.enabled = false;
             GUI.Box(runtimeModeRect, "Runtime Only", EditorStyles.popup);
             GUI.enabled = oldFlag;
@@ -145,11 +95,13 @@ namespace LunarConsoleEditorInternal
             {
                 methodProperty.stringValue = null;
             }
-            LunarPersistentListenerMode persistentListenerMode = (LunarPersistentListenerMode) modeProperty.enumValueIndex;
+
+            var persistentListenerMode = (LunarPersistentListenerMode)modeProperty.enumValueIndex;
             if (targetProperty.objectReferenceValue == null || string.IsNullOrEmpty(methodProperty.stringValue))
             {
                 persistentListenerMode = LunarPersistentListenerMode.Void;
             }
+
             SerializedProperty argumentProperty;
             switch (persistentListenerMode)
             {
@@ -172,16 +124,19 @@ namespace LunarConsoleEditorInternal
                     argumentProperty = argumentsProperty.FindPropertyRelative("m_intArgument");
                     break;
             }
+
             string argumentAssemblyTypeName = argumentsProperty.FindPropertyRelative(kPropObjectArgumentAssemblyTypeName).stringValue;
-            Type argumentType = typeof(UnityEngine.Object);
+            Type argumentType = typeof(Object);
             if (!string.IsNullOrEmpty(argumentAssemblyTypeName))
             {
-                argumentType = (Type.GetType(argumentAssemblyTypeName, false) ?? typeof(UnityEngine.Object));
+                argumentType = Type.GetType(argumentAssemblyTypeName, false) ?? typeof(Object);
             }
+
             if (persistentListenerMode == LunarPersistentListenerMode.Object)
             {
                 EditorGUI.BeginChangeCheck();
-                UnityEngine.Object objectReferenceValue = EditorGUI.ObjectField(argumentRect, GUIContent.none, argumentProperty.objectReferenceValue, argumentType, true);
+                Object objectReferenceValue =
+                    EditorGUI.ObjectField(argumentRect, GUIContent.none, argumentProperty.objectReferenceValue, argumentType, true);
                 if (EditorGUI.EndChangeCheck())
                 {
                     argumentProperty.objectReferenceValue = objectReferenceValue;
@@ -191,24 +146,27 @@ namespace LunarConsoleEditorInternal
             {
                 EditorGUI.PropertyField(argumentRect, argumentProperty, GUIContent.none);
             }
+
             using (new DisabledScopeCompat(targetProperty.objectReferenceValue == null))
             {
                 EditorGUI.BeginProperty(methodRect, GUIContent.none, methodProperty);
                 GUIContent content;
                 {
-                    StringBuilder stringBuilder = new StringBuilder();
+                    var stringBuilder = new StringBuilder();
                     if (targetProperty.objectReferenceValue == null || string.IsNullOrEmpty(methodProperty.stringValue))
                     {
                         stringBuilder.Append("No Function");
                     }
-                    else if (!LunarConsoleActionCall.IsPersistantListenerValid(targetProperty.objectReferenceValue, methodProperty.stringValue, persistentListenerMode))
+                    else if (!LunarConsoleActionCall.IsPersistantListenerValid(targetProperty.objectReferenceValue, methodProperty.stringValue,
+                                 persistentListenerMode))
                     {
-                        string componentName = "UnknownComponent";
-                        UnityEngine.Object target = targetProperty.objectReferenceValue;
+                        var componentName = "UnknownComponent";
+                        Object target = targetProperty.objectReferenceValue;
                         if (target != null)
                         {
                             componentName = target.GetType().Name;
                         }
+
                         stringBuilder.Append(string.Format("<Missing {0}.{1}>", componentName, methodProperty.stringValue));
                     }
                     else
@@ -227,14 +185,17 @@ namespace LunarConsoleEditorInternal
                             }
                         }
                     }
+
                     content = new GUIContent(stringBuilder.ToString());
                 }
                 if (GUI.Button(methodRect, content, EditorStyles.popup))
                 {
                     BuildPopupList(arrayElementAtIndex).DropDown(methodRect);
                 }
+
                 EditorGUI.EndProperty();
             }
+
             GUI.backgroundColor = backgroundColor;
         }
 
@@ -244,21 +205,23 @@ namespace LunarConsoleEditorInternal
             SerializedProperty methodProperty = serializedProperty.FindPropertyRelative(kPropMethod);
 
             var menu = new GenericMenu();
-            menu.AddItem(new GUIContent("No Function"), methodProperty.stringValue == null, delegate() {
+            menu.AddItem(new GUIContent("No Function"), methodProperty.stringValue == null, delegate
+            {
                 methodProperty.stringValue = null;
                 serializedObject.ApplyModifiedProperties();
             });
 
-            var target = targetProperty.objectReferenceValue;
+            Object target = targetProperty.objectReferenceValue;
             if (target != null)
             {
                 menu.AddSeparator("/");
 
-                var functions = ListFunctions(target);
-                foreach (var function in functions)
+                Function[] functions = ListFunctions(target);
+                foreach (Function function in functions)
                 {
-                    var selected = target == function.target && methodProperty.stringValue == function.method.Name;
-                    menu.AddItem(new GUIContent(function.target.GetType().Name + "/" + function.displayName), selected, delegate () {
+                    bool selected = target == function.target && methodProperty.stringValue == function.method.Name;
+                    menu.AddItem(new GUIContent(function.target.GetType().Name + "/" + function.displayName), selected, delegate
+                    {
                         targetProperty.objectReferenceValue = function.target;
                         methodProperty.stringValue = function.method.Name;
                         UpdateParamProperty(serializedProperty, function.paramType);
@@ -270,16 +233,16 @@ namespace LunarConsoleEditorInternal
             return menu;
         }
 
-        void UpdateParamProperty(SerializedProperty serializedProperty, Type paramType)
+        private void UpdateParamProperty(SerializedProperty serializedProperty, Type paramType)
         {
             SerializedProperty modeProperty = serializedProperty.FindPropertyRelative(kPropMode);
             SerializedProperty argumentsProperty = serializedProperty.FindPropertyRelative(kPropArguments);
             SerializedProperty typeAssemblyProperty = argumentsProperty.FindPropertyRelative(kPropObjectArgumentAssemblyTypeName);
 
-            LunarPersistentListenerMode mode = LunarPersistentListenerMode.Void;
+            var mode = LunarPersistentListenerMode.Void;
             if (paramType != null)
             {
-                if (paramType.IsSubclassOf(typeof(UnityEngine.Object)))
+                if (paramType.IsSubclassOf(typeof(Object)))
                 {
                     mode = LunarPersistentListenerMode.Object;
                 }
@@ -304,13 +267,14 @@ namespace LunarConsoleEditorInternal
                     Log.e("Unexpected param type: {0}", paramType);
                 }
             }
+
             modeProperty.enumValueIndex = (int)mode;
             typeAssemblyProperty.stringValue = paramType != null ? paramType.AssemblyQualifiedName : null;
         }
 
         private Rect[] GetRowRects(Rect rect)
         {
-            Rect[] array = new Rect[4]; 
+            var array = new Rect[4];
             rect.height = 16f;
             rect.y += 2f;
             Rect rect2 = rect;
@@ -328,36 +292,37 @@ namespace LunarConsoleEditorInternal
             return array;
         }
 
-        Function[] ListFunctions(UnityEngine.Object obj)
+        private Function[] ListFunctions(Object obj)
         {
             if (obj is Component)
             {
                 obj = ((Component)obj).gameObject;
             }
 
-            List<Function> functions = new List<Function>();
+            var functions = new List<Function>();
             if (obj != null)
             {
-                List<UnityEngine.Object> targets = new List<UnityEngine.Object>();
+                var targets = new List<Object>();
                 targets.Add(obj);
 
                 if (obj is GameObject)
                 {
                     var gameObject = obj as GameObject;
-                    foreach (var component in gameObject.GetComponents<Component>())
+                    foreach (Component component in gameObject.GetComponents<Component>())
                     {
                         targets.Add(component);
                     }
                 }
 
-                foreach (var target in targets)
+                foreach (Object target in targets)
                 {
                     List<MethodInfo> methods = LunarConsoleActionCall.ListActionMethods(target);
-                    methods.Sort(delegate (MethodInfo a, MethodInfo b) {
-                        return a.IsSpecialName == b.IsSpecialName ? a.Name.CompareTo(b.Name) : (a.IsSpecialName ? -1 : 1);
+                    methods.Sort(delegate(MethodInfo a, MethodInfo b)
+                    {
+                        return a.IsSpecialName == b.IsSpecialName ? a.Name.CompareTo(b.Name) : a.IsSpecialName ? -1 : 1;
                     });
 
-                    foreach (var method in methods)
+                    foreach (MethodInfo method in methods)
                     {
                         functions.Add(new Function(target, method));
                     }
@@ -365,6 +330,46 @@ namespace LunarConsoleEditorInternal
             }
 
             return functions.ToArray();
+        }
+
+        private struct Function
+        {
+            public readonly Object target;
+            public readonly MethodInfo method;
+
+            public Function(Object target, MethodInfo method)
+            {
+                this.target = target;
+                this.method = method;
+            }
+
+            public bool isProperty => method.IsSpecialName && method.Name.StartsWith("set_");
+
+            public string simpleName => isProperty ? method.Name.Substring("set_".Length) : method.Name;
+
+            public Type paramType
+            {
+                get
+                {
+                    ParameterInfo[] methodParams = method.GetParameters();
+                    return methodParams.Length > 0 ? methodParams[0].ParameterType : null;
+                }
+            }
+
+            public string displayName
+            {
+                get
+                {
+                    Type functionParamType = paramType;
+                    if (functionParamType != null)
+                    {
+                        string typeName = ClassUtils.TypeShortName(functionParamType);
+                        return isProperty ? string.Format("{0} {1}", typeName, simpleName) : string.Format("{0} ({1})", simpleName, typeName);
+                    }
+
+                    return string.Format("{0} ()", simpleName);
+                }
+            }
         }
     }
 }

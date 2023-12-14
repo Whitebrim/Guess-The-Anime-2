@@ -20,19 +20,15 @@
 //
 
 
-﻿using System.Collections;
-using System.Collections.Generic;
-
-using UnityEngine;
-using UnityEditor;
-
-using LunarConsolePlugin;
+﻿using LunarConsolePlugin;
 using LunarConsolePluginInternal;
+using UnityEditor;
+using UnityEngine;
 
 namespace LunarConsoleEditorInternal
 {
     [CustomEditor(typeof(LunarConsole))]
-    class LunarConsoleEditor : Editor
+    internal class LunarConsoleEditor : Editor
     {
         private GUIStyle m_buttonStyle;
 

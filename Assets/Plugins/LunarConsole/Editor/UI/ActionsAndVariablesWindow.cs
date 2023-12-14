@@ -21,41 +21,92 @@
 
 
 using System;
-using UnityEngine;
-using UnityEditor;
-
 using LunarConsolePlugin;
 using LunarConsolePluginInternal;
+using UnityEditor;
+using UnityEngine;
 
 namespace LunarConsoleEditorInternal
 {
-    class ActionsAndVariablesWindow : EditorWindow
+    internal class ActionsAndVariablesWindow : EditorWindow
     {
-        static readonly string PrefsKeyFilterText = "com.spacemadness.LunarMobileConsole.Editor.FilterText";
+        private static readonly string PrefsKeyFilterText = "com.spacemadness.LunarMobileConsole.Editor.FilterText";
+        private GUIStyle m_filterButtonStyle;
 
-        string m_filterText;
-        Vector2 m_scrollPosition;
+        private string m_filterText;
 
-        GUIStyle m_filterTextStyle;
-        GUIStyle m_filterButtonStyle;
-        GUIStyle m_headerLabelStyle;
-        GUIStyle m_resetButtonStyle;
+        private GUIStyle m_filterTextStyle;
+        private GUIStyle m_headerLabelStyle;
+        private GUIStyle m_resetButtonStyle;
+        private Vector2 m_scrollPosition;
 
         public ActionsAndVariablesWindow()
         {
-            #if UNITY_5_0
+#if UNITY_5_0
             this.title = "Actions & Vars";
-            #else
-            this.titleContent = new GUIContent("Actions & Vars");
-            #endif
+#else
+            titleContent = new GUIContent("Actions & Vars");
+#endif
         }
 
-        void OnEnable()
+        private GUIStyle filterTextStyle
+        {
+            get
+            {
+                if (m_filterTextStyle == null)
+                {
+                    m_filterTextStyle = new GUIStyle("SearchTextField");
+                }
+
+                return m_filterTextStyle;
+            }
+        }
+
+        private GUIStyle filterButtonStyle
+        {
+            get
+            {
+                if (m_filterButtonStyle == null)
+                {
+                    m_filterButtonStyle = new GUIStyle("SearchCancelButton");
+                }
+
+                return m_filterButtonStyle;
+            }
+        }
+
+        private GUIStyle headerLabelStyle
+        {
+            get
+            {
+                if (m_headerLabelStyle == null)
+                {
+                    m_headerLabelStyle = new GUIStyle("HeaderLabel");
+                }
+
+                return m_headerLabelStyle;
+            }
+        }
+
+        private GUIStyle resetButtonStyle
+        {
+            get
+            {
+                if (m_resetButtonStyle == null)
+                {
+                    m_resetButtonStyle = new GUIStyle("minibutton");
+                }
+
+                return m_resetButtonStyle;
+            }
+        }
+
+        private void OnEnable()
         {
             m_filterText = EditorPrefs.GetString(PrefsKeyFilterText, "");
         }
-        
-        void OnGUI()
+
+        private void OnGUI()
         {
             if (Application.isPlaying)
             {
@@ -75,18 +126,19 @@ namespace LunarConsoleEditorInternal
             }
         }
 
-        void OnRegistryGUI(CRegistry registry)
+        private void OnRegistryGUI(CRegistry registry)
         {
             GUILayout.BeginVertical();
             {
                 GUILayout.BeginHorizontal();
                 {
-                    var oldFilterText = m_filterText;
+                    string oldFilterText = m_filterText;
                     m_filterText = GUILayout.TextField(m_filterText, filterTextStyle);
                     if (GUILayout.Button(GUIContent.none, filterButtonStyle))
                     {
                         m_filterText = "";
                     }
+
                     if (oldFilterText != m_filterText)
                     {
                         EditorPrefs.SetString(PrefsKeyFilterText, m_filterText);
@@ -96,10 +148,10 @@ namespace LunarConsoleEditorInternal
 
                 m_scrollPosition = GUILayout.BeginScrollView(m_scrollPosition);
                 {
-                    var filterText = m_filterText.ToLower();
+                    string filterText = m_filterText.ToLower();
 
                     GUILayout.Label("Actions", headerLabelStyle);
-                    foreach (var action in registry.actions)
+                    foreach (CAction action in registry.actions)
                     {
                         if (m_filterText.Length == 0 || action.Name.ToLower().Contains(filterText))
                         {
@@ -108,7 +160,7 @@ namespace LunarConsoleEditorInternal
                     }
 
                     GUILayout.Label("Variables", headerLabelStyle);
-                    foreach (var cvar in registry.cvars)
+                    foreach (CVar cvar in registry.cvars)
                     {
                         if (m_filterText.Length == 0 || cvar.Name.ToLower().Contains(filterText))
                         {
@@ -121,7 +173,7 @@ namespace LunarConsoleEditorInternal
             GUILayout.EndVertical();
         }
 
-        void OnActionGUI(CAction action)
+        private void OnActionGUI(CAction action)
         {
             if (GUILayout.Button(action.Name))
             {
@@ -129,13 +181,13 @@ namespace LunarConsoleEditorInternal
             }
         }
 
-        void OnVariableGUI(CVar cvar)
+        private void OnVariableGUI(CVar cvar)
         {
             if (cvar.IsHidden)
             {
                 return;
             }
-            
+
             if (cvar.IsDefault)
             {
                 OnVariableFieldGUI(cvar);
@@ -158,7 +210,7 @@ namespace LunarConsoleEditorInternal
             }
         }
 
-        static void OnVariableFieldGUI(CVar cvar)
+        private static void OnVariableFieldGUI(CVar cvar)
         {
             EditorGUI.BeginChangeCheck();
             switch (cvar.Type)
@@ -175,6 +227,7 @@ namespace LunarConsoleEditorInternal
                     {
                         cvar.FloatValue = EditorGUILayout.FloatField(cvar.Name, cvar.FloatValue);
                     }
+
                     break;
                 case CVarType.Integer:
                     cvar.IntValue = EditorGUILayout.IntField(cvar.Name, cvar.IntValue);
@@ -183,18 +236,20 @@ namespace LunarConsoleEditorInternal
                     cvar.Value = EditorGUILayout.TextField(cvar.Name, cvar.Value);
                     break;
                 case CVarType.Enum:
-                    var selectedIndex = Array.IndexOf(cvar.AvailableValues, cvar.Value);
-                    var newSelectedIndex = EditorGUILayout.Popup(cvar.Name, selectedIndex, cvar.AvailableValues);
+                    int selectedIndex = Array.IndexOf(cvar.AvailableValues, cvar.Value);
+                    int newSelectedIndex = EditorGUILayout.Popup(cvar.Name, selectedIndex, cvar.AvailableValues);
                     if (selectedIndex != newSelectedIndex)
                     {
                         cvar.Value = cvar.AvailableValues[newSelectedIndex];
                     }
+
                     break;
                 default:
                     EditorGUILayout.LabelField(cvar.Name, cvar.Value);
                     break;
             }
-            var changed = EditorGUI.EndChangeCheck();
+
+            bool changed = EditorGUI.EndChangeCheck();
             if (changed)
             {
                 LunarConsole.instance.MarkVariablesDirty();
@@ -203,55 +258,7 @@ namespace LunarConsoleEditorInternal
 
         public static void ShowWindow()
         {
-            EditorWindow.GetWindow<ActionsAndVariablesWindow>();
-        }
-
-        private GUIStyle filterTextStyle
-        {
-            get
-            {
-                if (m_filterTextStyle == null)
-                {
-                    m_filterTextStyle = new GUIStyle("SearchTextField");
-                }
-                return m_filterTextStyle;
-            }
-        }
-
-        private GUIStyle filterButtonStyle
-        {
-            get
-            {
-                if (m_filterButtonStyle == null)
-                {
-                    m_filterButtonStyle = new GUIStyle("SearchCancelButton");
-                }
-                return m_filterButtonStyle;
-            }
-        }
-
-        private GUIStyle headerLabelStyle
-        {
-            get
-            {
-                if (m_headerLabelStyle == null)
-                {
-                    m_headerLabelStyle = new GUIStyle("HeaderLabel");
-                }
-                return m_headerLabelStyle;
-            }
-        }
-
-        private GUIStyle resetButtonStyle
-        {
-            get
-            {
-                if (m_resetButtonStyle == null)
-                {
-                    m_resetButtonStyle = new GUIStyle("minibutton");
-                }
-                return m_resetButtonStyle;
-            }
+            GetWindow<ActionsAndVariablesWindow>();
         }
     }
 }

@@ -21,11 +21,10 @@
 
 
 ﻿using UnityEngine;
-using System.Collections;
 
 namespace LunarConsolePluginInternal
 {
-    static class ColorUtils
+    internal static class ColorUtils
     {
         private const float kMultiplier = 1.0f / 255.0f;
 
@@ -44,7 +43,7 @@ namespace LunarConsolePluginInternal
             float r = ((value >> 16) & 0xff) * kMultiplier;
             float g = ((value >> 8) & 0xff) * kMultiplier;
             float b = (value & 0xff) * kMultiplier;
-            float a = 1.0f;
+            var a = 1.0f;
 
             return new Color(r, g, b, a);
         }
@@ -60,4 +59,3 @@ namespace LunarConsolePluginInternal
         }
     }
 }
-

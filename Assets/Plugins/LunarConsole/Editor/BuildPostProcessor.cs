@@ -20,25 +20,15 @@
 //
 
 
-﻿using UnityEngine;
-using UnityEditor;
-using UnityEditor.Callbacks;
-using System;
-
-#if UNITY_IOS || UNITY_IPHONE
+﻿#if UNITY_IOS || UNITY_IPHONE
 using UnityEditor.iOS.Xcode;
 #endif
 
-using System.Collections;
-using System.IO;
-
-using LunarConsolePluginInternal;
-
 namespace LunarConsoleEditorInternal
 {
-    static class BuildPostProcessor
+    internal static class BuildPostProcessor
     {
-        #if UNITY_IOS || UNITY_IPHONE
+#if UNITY_IOS || UNITY_IPHONE
         [PostProcessBuild(1000)]
         static void OnPostprocessBuild(BuildTarget target, string buildPath)
         {
@@ -74,10 +64,10 @@ namespace LunarConsoleEditorInternal
             var projectMod = new XcodeProjMod(buildPath, pluginPath);
             projectMod.UpdateProject();
         }
-        #endif //UNITY_IOS || UNITY_IPHONE
+#endif //UNITY_IOS || UNITY_IPHONE
     }
 
-    #if UNITY_IOS || UNITY_IPHONE
+#if UNITY_IOS || UNITY_IPHONE
     class XcodeProjMod
     {
         private readonly string m_buildPath;
@@ -117,7 +107,8 @@ namespace LunarConsoleEditorInternal
             foreach (var file in mod.files)
             {
                 var filename = Path.GetFileName(file);
-                var fileGuid = project.AddFile(FileUtils.FixPath(FileUtils.MakeRelativePath(dirProject, sourceDir + "/" + file)), targetGroup + "/" + filename, PBXSourceTree.Source);
+                var fileGuid =
+ project.AddFile(FileUtils.FixPath(FileUtils.MakeRelativePath(dirProject, sourceDir + "/" + file)), targetGroup + "/" + filename, PBXSourceTree.Source);
                 if (filename.EndsWith(".h"))
                 {
                     continue;
@@ -171,5 +162,5 @@ namespace LunarConsoleEditorInternal
     #pragma warning restore 0649
     #pragma warning restore 0414
 
-    #endif // UNITY_IOS || UNITY_IPHONE
+#endif // UNITY_IOS || UNITY_IPHONE
 }

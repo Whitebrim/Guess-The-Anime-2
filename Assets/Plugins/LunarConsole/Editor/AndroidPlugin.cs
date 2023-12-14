@@ -20,9 +20,9 @@
 //
 
 
-using UnityEngine;
-using UnityEditor;
 using LunarConsolePluginInternal;
+using UnityEditor;
+using UnityEngine;
 
 namespace LunarConsoleEditorInternal
 {
@@ -35,7 +35,7 @@ namespace LunarConsoleEditorInternal
                 Log.d("Retrying Android Plugin import...");
             }
 
-            var androidPathAAR = FileUtils.FixAssetPath(EditorConstants.EditorPathAndroidAAR);
+            string androidPathAAR = FileUtils.FixAssetPath(EditorConstants.EditorPathAndroidAAR);
             if (androidPathAAR == null || !FileUtils.AssetPathExists(androidPathAAR))
             {
                 Debug.LogErrorFormat(
@@ -46,7 +46,7 @@ namespace LunarConsoleEditorInternal
                 return;
             }
 
-            var importer = (PluginImporter) AssetImporter.GetAtPath(androidPathAAR);
+            var importer = (PluginImporter)AssetImporter.GetAtPath(androidPathAAR);
             if (importer == null)
             {
                 // mleenhardt: Added delayed retry attempt to fix error caused by the fact that importer is

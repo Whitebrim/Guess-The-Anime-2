@@ -20,21 +20,35 @@
 //
 
 
-﻿using UnityEngine;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace LunarConsolePluginInternal
 {
-    class Iterator<T>
+    internal class Iterator<T>
     {
-        private IList<T> m_target;
         private int m_current;
+        private IList<T> m_target;
 
         public Iterator(IList<T> target)
         {
             Init(target);
+        }
+
+        public int Count => m_target.Count;
+
+        public int Position
+        {
+            get => m_current;
+            set
+            {
+                if (value < -1 || value >= Count)
+                {
+                    throw new IndexOutOfRangeException("Invalid position: " + value);
+                }
+
+                m_current = value;
+            }
         }
 
         public void Init(IList<T> target)
@@ -94,24 +108,6 @@ namespace LunarConsolePluginInternal
         public void Reset()
         {
             m_current = -1;
-        }
-
-        public int Count
-        {
-            get { return m_target.Count; }
-        }
-
-        public int Position 
-        { 
-            get { return m_current; }
-            set 
-            { 
-                if (value < -1 || value >= Count)
-                {
-                    throw new IndexOutOfRangeException("Invalid position: " + value);
-                }
-                m_current = value; 
-            }
         }
     }
 }

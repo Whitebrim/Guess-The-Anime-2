@@ -23,9 +23,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
-
-using UnityEngine;
 using LunarConsolePluginInternal;
 
 namespace LunarConsolePlugin
@@ -41,7 +38,7 @@ namespace LunarConsolePlugin
         Enum
     }
 
-    struct CValue
+    internal struct CValue
     {
         public string stringValue;
         public int intValue;
@@ -50,14 +47,14 @@ namespace LunarConsolePlugin
         public bool Equals(ref CValue other)
         {
             return other.intValue == intValue &&
-            other.floatValue == floatValue &&
-            other.stringValue == stringValue;
+                   other.floatValue == floatValue &&
+                   other.stringValue == stringValue;
         }
     }
 
     public struct CVarValueRange
     {
-        public static readonly CVarValueRange Undefined = new CVarValueRange(float.NaN, float.NaN);
+        public static readonly CVarValueRange Undefined = new(float.NaN, float.NaN);
 
         public readonly float min;
         public readonly float max;
@@ -68,27 +65,24 @@ namespace LunarConsolePlugin
             this.max = max;
         }
 
-        public bool IsValid
-        {
-            get { return !float.IsNaN(min) && !float.IsNaN(max); }
-        }
+        public bool IsValid => !float.IsNaN(min) && !float.IsNaN(max);
     }
 
     [Flags]
     public enum CFlags
-    {   
+    {
         /// <summary>
-        /// No flags (default value)
+        ///     No flags (default value)
         /// </summary>
-        None      = 0,
+        None = 0,
 
         /// <summary>
-        /// Won't be listed in UI
+        ///     Won't be listed in UI
         /// </summary>
-        Hidden    = 1 << 1,
+        Hidden = 1 << 1,
 
         /// <summary>
-        /// Don't save between sessions
+        ///     Don't save between sessions
         /// </summary>
         NoArchive = 1 << 2
     }
@@ -97,45 +91,41 @@ namespace LunarConsolePlugin
     {
         private static int s_nextId;
 
-        private readonly int m_id;
-        private readonly string m_name;
-        private readonly CVarType m_type;
-        private readonly CFlags m_flags;
-
-        private CValue m_value;
         private CValue m_defaultValue;
-        private CVarValueRange m_range = CVarValueRange.Undefined;
 
         private CVarChangedDelegateList m_delegateList;
+        private CVarValueRange m_range = CVarValueRange.Undefined;
+
+        private CValue m_value;
 
         public CVar(string name, bool defaultValue, CFlags flags = CFlags.None)
             : this(name, CVarType.Boolean, flags)
         {
-            this.IntValue = defaultValue ? 1 : 0;
+            IntValue = defaultValue ? 1 : 0;
             m_defaultValue = m_value;
         }
 
         public CVar(string name, int defaultValue, CFlags flags = CFlags.None)
             : this(name, CVarType.Integer, flags)
         {
-            this.IntValue = defaultValue;
+            IntValue = defaultValue;
             m_defaultValue = m_value;
         }
 
         public CVar(string name, float defaultValue, CFlags flags = CFlags.None)
             : this(name, CVarType.Float, flags)
         {
-            this.FloatValue = defaultValue;
+            FloatValue = defaultValue;
             m_defaultValue = m_value;
         }
 
         public CVar(string name, string defaultValue, CFlags flags = CFlags.None)
             : this(name, CVarType.String, flags)
         {
-            this.Value = defaultValue;
+            Value = defaultValue;
             m_defaultValue = m_value;
         }
-        
+
         protected CVar(string name, CVarType type, CFlags flags)
         {
             if (name == null)
@@ -143,12 +133,34 @@ namespace LunarConsolePlugin
                 throw new ArgumentNullException("name");
             }
 
-            m_id = ++s_nextId;
+            Id = ++s_nextId;
 
-            m_name = name;
-            m_type = type;
-            m_flags = flags;
+            Name = name;
+            Type = type;
+            Flags = flags;
         }
+
+        #region IComparable
+
+        public int CompareTo(CVar other)
+        {
+            return Name.CompareTo(other.Name);
+        }
+
+        #endregion
+
+        #region IEquatable
+
+        public bool Equals(CVar other)
+        {
+            return other != null &&
+                   other.Name == Name &&
+                   other.m_value.Equals(ref m_value) &&
+                   other.m_defaultValue.Equals(ref m_defaultValue) &&
+                   other.Type == Type;
+        }
+
+        #endregion
 
         #region Delegates
 
@@ -212,59 +224,25 @@ namespace LunarConsolePlugin
 
         #endregion
 
-        #region IEquatable
-
-        public bool Equals(CVar other)
-        {
-            return other != null &&
-            other.m_name == m_name &&
-            other.m_value.Equals(ref m_value) &&
-            other.m_defaultValue.Equals(ref m_defaultValue) &&
-            other.m_type == m_type;
-        }
-
-        #endregion
-
-        #region IComparable
-
-        public int CompareTo(CVar other)
-        {
-            return Name.CompareTo(other.Name);
-        }
-
-        #endregion
-
         #region Properties
 
-        public int Id
-        {
-            get { return m_id; }
-        }
+        public int Id { get; }
 
-        public string Name
-        {
-            get { return m_name; }
-        }
+        public string Name { get; }
 
-        public CVarType Type
-        {
-            get { return m_type; }
-        }
+        public CVarType Type { get; }
 
         public string DefaultValue
         {
-            get { return m_defaultValue.stringValue; }
-            protected set { m_defaultValue.stringValue = value; }
+            get => m_defaultValue.stringValue;
+            protected set => m_defaultValue.stringValue = value;
         }
 
-        public bool IsString
-        {
-            get { return m_type == CVarType.String; }
-        }
+        public bool IsString => Type == CVarType.String;
 
         public string Value
         {
-            get { return m_value.stringValue; }
+            get => m_value.stringValue;
             set
             {
                 bool changed = m_value.stringValue != value;
@@ -282,30 +260,24 @@ namespace LunarConsolePlugin
 
         public CVarValueRange Range
         {
-            get { return m_range; }
-            set { m_range = value; }
+            get => m_range;
+            set => m_range = value;
         }
 
-        public bool HasRange
-        {
-            get { return m_range.IsValid; }
-        }
+        public bool HasRange => m_range.IsValid;
 
-        public bool IsInt
-        {
-            get { return m_type == CVarType.Integer || m_type == CVarType.Boolean; }
-        }
+        public bool IsInt => Type == CVarType.Integer || Type == CVarType.Boolean;
 
         public int IntValue
         {
-            get { return m_value.intValue; }
+            get => m_value.intValue;
             set
             {
                 bool changed = m_value.intValue != value;
 
                 m_value.stringValue = StringUtils.ToString(value);
                 m_value.intValue = value;
-                m_value.floatValue = (float)value;
+                m_value.floatValue = value;
 
                 if (changed)
                 {
@@ -314,14 +286,11 @@ namespace LunarConsolePlugin
             }
         }
 
-        public bool IsFloat
-        {
-            get { return m_type == CVarType.Float; }
-        }
+        public bool IsFloat => Type == CVarType.Float;
 
         public float FloatValue
         {
-            get { return m_value.floatValue; }
+            get => m_value.floatValue;
             set
             {
                 float oldValue = m_value.floatValue;
@@ -337,28 +306,22 @@ namespace LunarConsolePlugin
             }
         }
 
-        public bool IsBool
-        {
-            get { return m_type == CVarType.Boolean; }
-        }
+        public bool IsBool => Type == CVarType.Boolean;
 
         public bool BoolValue
         {
-            get { return m_value.intValue != 0; }
-            set { this.IntValue = value ? 1 : 0; }
+            get => m_value.intValue != 0;
+            set => IntValue = value ? 1 : 0;
         }
 
-        public virtual string[] AvailableValues
-        {
-            get { return null; }
-        }
+        public virtual string[] AvailableValues => null;
 
         public bool IsDefault
         {
-            get { return m_value.Equals(m_defaultValue); }
+            get => m_value.Equals(m_defaultValue);
             set
             {
-                bool changed = this.IsDefault ^ value;
+                bool changed = IsDefault ^ value;
                 m_value = m_defaultValue;
 
                 if (changed)
@@ -370,18 +333,12 @@ namespace LunarConsolePlugin
 
         public bool HasFlag(CFlags flag)
         {
-            return (m_flags & flag) != 0;
+            return (Flags & flag) != 0;
         }
 
-        public CFlags Flags
-        {
-            get { return m_flags; }
-        }
+        public CFlags Flags { get; }
 
-        public bool IsHidden
-        {
-            get { return (m_flags & CFlags.Hidden) != 0; }
-        }
+        public bool IsHidden => (Flags & CFlags.Hidden) != 0;
 
         #endregion
 
@@ -410,63 +367,77 @@ namespace LunarConsolePlugin
         #endregion
     }
 
-    public class CEnumVar<T> : CVar  where T : struct, IConvertible
+    public class CEnumVar<T> : CVar where T : struct, IConvertible
     {
-        private readonly IDictionary<string, T> m_valueLookup;
         private readonly string[] m_names;
+        private readonly IDictionary<string, T> m_valueLookup;
 
         public CEnumVar(string name, T defaultValue, CFlags flags = CFlags.None) : base(name, CVarType.Enum, flags)
         {
-            if (!typeof(T).IsEnum) 
+            if (!typeof(T).IsEnum)
             {
                 throw new ArgumentException("T must be an enumerated type");
             }
-            
+
             var value = defaultValue.ToString();
-            
+
             Value = value;
             DefaultValue = value;
-            
-            var values = Enum.GetValues(typeof(T));
+
+            Array values = Enum.GetValues(typeof(T));
             m_names = Enum.GetNames(typeof(T));
-            
+
             m_valueLookup = new Dictionary<string, T>();
-            for (int i = 0; i < values.Length; i++)
+            for (var i = 0; i < values.Length; i++)
             {
-                m_valueLookup[m_names[i]] = (T) values.GetValue(i);
+                m_valueLookup[m_names[i]] = (T)values.GetValue(i);
             }
         }
 
-        public override string[] AvailableValues
-        {
-            get { return m_names; }
-        }
+        public override string[] AvailableValues => m_names;
 
-        public T EnumValue
-        {
-            get { return m_valueLookup[Value]; }
-        }
+        public T EnumValue => m_valueLookup[Value];
 
-        #if UNITY_2017_1_OR_NEWER
-        
+#if UNITY_2017_1_OR_NEWER
+
         public static implicit operator T(CEnumVar<T> cvar)
         {
             return cvar.EnumValue;
         }
-        
-        #endif
+
+#endif
     }
-    
+
     public class CVarList : IEnumerable<CVar>
     {
-        private readonly List<CVar> m_variables;
         private readonly Dictionary<int, CVar> m_lookupById;
+        private readonly List<CVar> m_variables;
 
         public CVarList()
         {
             m_variables = new List<CVar>();
             m_lookupById = new Dictionary<int, CVar>();
         }
+
+        public int Count => m_variables.Count;
+
+        #region IEnumerable implementation
+
+        public IEnumerator<CVar> GetEnumerator()
+        {
+            return m_variables.GetEnumerator();
+        }
+
+        #endregion
+
+        #region IEnumerable implementation
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return m_variables.GetEnumerator();
+        }
+
+        #endregion
 
         public void Add(CVar variable)
         {
@@ -496,13 +467,14 @@ namespace LunarConsolePlugin
 
         public CVar Find(string name)
         {
-            foreach (var cvar in m_variables)
+            foreach (CVar cvar in m_variables)
             {
                 if (cvar.Name == name)
                 {
                     return cvar;
                 }
             }
+
             return null;
         }
 
@@ -511,37 +483,13 @@ namespace LunarConsolePlugin
             m_variables.Clear();
             m_lookupById.Clear();
         }
-
-        #region IEnumerable implementation
-
-        public IEnumerator<CVar> GetEnumerator()
-        {
-            return m_variables.GetEnumerator();
-        }
-
-        #endregion
-
-        #region IEnumerable implementation
-
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return m_variables.GetEnumerator();
-        }
-
-        #endregion
-
-        public int Count
-        {
-            get { return m_variables.Count; }
-        }
     }
 
-    [AttributeUsage (AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Field)]
     public sealed class CVarRangeAttribute : Attribute
     {
-        public readonly float min;
-
         public readonly float max;
+        public readonly float min;
 
         public CVarRangeAttribute(float min, float max)
         {
@@ -555,7 +503,7 @@ namespace LunarConsolePlugin
     {
     }
 
-    class CVarChangedDelegateList : BaseList<CVarChangedDelegate>
+    internal class CVarChangedDelegateList : BaseList<CVarChangedDelegate>
     {
         public CVarChangedDelegateList(int capacity)
             : base(NullCVarChangedDelegate, capacity)
@@ -569,7 +517,7 @@ namespace LunarConsolePlugin
                 Lock();
 
                 int elementsCount = list.Count;
-                for (int i = 0; i < elementsCount; ++i) // do not update added items on that tick
+                for (var i = 0; i < elementsCount; ++i) // do not update added items on that tick
                 {
                     try
                     {
@@ -587,7 +535,7 @@ namespace LunarConsolePlugin
             }
         }
 
-        static void NullCVarChangedDelegate(CVar cvar)
+        private static void NullCVarChangedDelegate(CVar cvar)
         {
         }
     }

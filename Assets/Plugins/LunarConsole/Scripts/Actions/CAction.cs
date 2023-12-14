@@ -21,22 +21,19 @@
 
 
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
-
 using UnityEngine;
 
 namespace LunarConsolePluginInternal
 {
     public class CAction : IComparable<CAction>
     {
-        static readonly string[] kEmptyArgs = new String[0];
-        static int s_nextActionId;
+        private static readonly string[] kEmptyArgs = new string[0];
+        private static int s_nextActionId;
 
-        readonly int m_id;
-        readonly string m_name;
-        Delegate m_actionDelegate;
+        private Delegate m_actionDelegate;
 
         public CAction(string name, Delegate actionDelegate)
         {
@@ -55,27 +52,36 @@ namespace LunarConsolePluginInternal
                 throw new ArgumentNullException("actionDelegate");
             }
 
-            m_id = s_nextActionId++;
-            m_name = name;
+            Id = s_nextActionId++;
+            Name = name;
             m_actionDelegate = actionDelegate;
         }
+
+        #region IComparable
+
+        public int CompareTo(CAction other)
+        {
+            return Name.CompareTo(other.Name);
+        }
+
+        #endregion
 
         public bool Execute()
         {
             try
             {
                 if (Debug.isDebugBuild)
-				{
+                {
                     return ReflectionUtils.Invoke(ActionDelegate, kEmptyArgs); // TODO: remove it
                 }
             }
             catch (TargetInvocationException e)
             {
-                Log.e(e.InnerException, "Exception while invoking action '{0}'", m_name);
+                Log.e(e.InnerException, "Exception while invoking action '{0}'", Name);
             }
             catch (Exception e)
             {
-                Log.e(e, "Exception while invoking action '{0}'", m_name);
+                Log.e(e, "Exception while invoking action '{0}'", Name);
             }
 
             return false;
@@ -86,15 +92,6 @@ namespace LunarConsolePluginInternal
         internal bool StartsWith(string prefix)
         {
             return StringUtils.StartsWithIgnoreCase(Name, prefix);
-        }
-
-        #endregion
-
-        #region IComparable
-
-        public int CompareTo(CAction other)
-        {
-            return Name.CompareTo(other.Name);
         }
 
         #endregion
@@ -110,25 +107,20 @@ namespace LunarConsolePluginInternal
 
         #region Properties
 
-        public int Id
-        {
-            get { return m_id; }
-        }
+        public int Id { get; }
 
-        public string Name
-        {
-            get { return m_name; }
-        }
+        public string Name { get; }
 
         public Delegate ActionDelegate
         {
-            get { return m_actionDelegate; }
+            get => m_actionDelegate;
             set
             {
                 if (value == null)
                 {
                     throw new ArgumentNullException("actionDelegate");
                 }
+
                 m_actionDelegate = value;
             }
         }
@@ -138,9 +130,9 @@ namespace LunarConsolePluginInternal
 
     public class CActionList : IEnumerable<CAction>
     {
-        private readonly List<CAction> m_actions;
         private readonly Dictionary<int, CAction> m_actionLookupById;
         private readonly Dictionary<string, CAction> m_actionLookupByName;
+        private readonly List<CAction> m_actions;
 
         public CActionList()
         {
@@ -148,6 +140,24 @@ namespace LunarConsolePluginInternal
             m_actionLookupById = new Dictionary<int, CAction>();
             m_actionLookupByName = new Dictionary<string, CAction>();
         }
+
+        #region IEnumerable implementation
+
+        public IEnumerator<CAction> GetEnumerator()
+        {
+            return m_actions.GetEnumerator();
+        }
+
+        #endregion
+
+        #region IEnumerable implementation
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return m_actions.GetEnumerator();
+        }
+
+        #endregion
 
         public void Add(CAction action)
         {
@@ -189,23 +199,5 @@ namespace LunarConsolePluginInternal
             m_actionLookupById.Clear();
             m_actionLookupByName.Clear();
         }
-
-        #region IEnumerable implementation
-
-        public IEnumerator<CAction> GetEnumerator()
-        {
-            return m_actions.GetEnumerator();
-        }
-
-        #endregion
-
-        #region IEnumerable implementation
-
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return m_actions.GetEnumerator();
-        }
-
-        #endregion
     }
 }

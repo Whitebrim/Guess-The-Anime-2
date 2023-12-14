@@ -23,15 +23,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
-
 using UnityEngine;
 
 namespace LunarConsolePluginInternal
 {
     public delegate bool ReflectionTypeFilter(Type type);
 
-    static class ReflectionUtils
+    internal static class ReflectionUtils
     {
         #region Invocation
 
@@ -55,9 +53,9 @@ namespace LunarConsolePluginInternal
                 return Invoke(target, method, EMPTY_INVOKE_ARGS);
             }
 
-            List<object> invokeList = new List<object>(invokeArgs.Length);
+            var invokeList = new List<object>(invokeArgs.Length);
 
-            Iterator<string> iter = new Iterator<string>(invokeArgs);
+            var iter = new Iterator<string>(invokeArgs);
             foreach (ParameterInfo param in parameters)
             {
                 invokeList.Add(ResolveInvokeParameter(param, iter));
@@ -88,11 +86,12 @@ namespace LunarConsolePluginInternal
 
             if (type == typeof(string[]))
             {
-                List<string> values = new List<string>();
+                var values = new List<string>();
                 while (iter.HasNext())
                 {
                     values.Add(NextArg(iter));
                 }
+
                 return values.ToArray();
             }
 
@@ -145,31 +144,34 @@ namespace LunarConsolePluginInternal
 
             if (type == typeof(int[]))
             {
-                List<int> values = new List<int>();
+                var values = new List<int>();
                 while (iter.HasNext())
                 {
                     values.Add(NextIntArg(iter));
                 }
+
                 return values.ToArray();
             }
 
             if (type == typeof(float[]))
             {
-                List<float> values = new List<float>();
+                var values = new List<float>();
                 while (iter.HasNext())
                 {
                     values.Add(NextFloatArg(iter));
                 }
+
                 return values.ToArray();
             }
 
             if (type == typeof(bool[]))
             {
-                List<bool> values = new List<bool>();
+                var values = new List<bool>();
                 while (iter.HasNext())
                 {
                     values.Add(NextBoolArg(iter));
                 }
+
                 return values.ToArray();
             }
 
@@ -186,7 +188,7 @@ namespace LunarConsolePluginInternal
                 return value;
             }
 
-            throw new ReflectionException("Can't parse int arg: '" + arg + "'"); 
+            throw new ReflectionException("Can't parse int arg: '" + arg + "'");
         }
 
         public static float NextFloatArg(Iterator<string> iter)
@@ -199,16 +201,23 @@ namespace LunarConsolePluginInternal
                 return value;
             }
 
-            throw new ReflectionException("Can't parse float arg: '" + arg + "'"); 
+            throw new ReflectionException("Can't parse float arg: '" + arg + "'");
         }
 
         public static bool NextBoolArg(Iterator<string> iter)
         {
             string arg = NextArg(iter).ToLower();
-            if (arg == "1" || arg == "yes" || arg == "true") return true;
-            if (arg == "0" || arg == "no"  || arg == "false") return false;
+            if (arg == "1" || arg == "yes" || arg == "true")
+            {
+                return true;
+            }
 
-            throw new ReflectionException("Can't parse bool arg: '" + arg + "'"); 
+            if (arg == "0" || arg == "no" || arg == "false")
+            {
+                return false;
+            }
+
+            throw new ReflectionException("Can't parse bool arg: '" + arg + "'");
         }
 
         public static string NextArg(Iterator<string> iter)
@@ -216,7 +225,7 @@ namespace LunarConsolePluginInternal
             if (iter.HasNext())
             {
                 string arg = StringUtils.UnArg(iter.Next());
-                if (!IsValidArg(arg)) 
+                if (!IsValidArg(arg))
                 {
                     throw new ReflectionException("Invalid arg: " + arg);
                 }
@@ -241,14 +250,15 @@ namespace LunarConsolePluginInternal
 
         public static List<Assembly> ListAssemblies(Func<Assembly, bool> filter)
         {
-            List<Assembly> result = new List<Assembly>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            var result = new List<Assembly>();
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 if (filter(assembly))
                 {
                     result.Add(assembly);
                 }
             }
+
             return result;
         }
 
@@ -261,7 +271,7 @@ namespace LunarConsolePluginInternal
         {
             return FindTypes(assembly, delegate(Type type)
             {
-                var attributes = type.GetCustomAttributes(attributeType, false);
+                object[] attributes = type.GetCustomAttributes(attributeType, false);
                 return attributes != null && attributes.Length > 0;
             });
         }
@@ -272,7 +282,7 @@ namespace LunarConsolePluginInternal
 
             try
             {
-                foreach (var type in GetAssemblyTypes(assembly))
+                foreach (Type type in GetAssemblyTypes(assembly))
                 {
                     if (filter(type))
                     {
@@ -296,15 +306,16 @@ namespace LunarConsolePluginInternal
             }
             catch (ReflectionTypeLoadException e)
             {
-                List<Type> result = new List<Type>();
+                var result = new List<Type>();
                 Type[] types = e.Types;
-                for (int i = 0; i < types.Length; ++i)
+                for (var i = 0; i < types.Length; ++i)
                 {
                     if (types[i] != null)
                     {
                         result.Add(types[i]);
                     }
                 }
+
                 return result;
             }
         }
@@ -312,7 +323,7 @@ namespace LunarConsolePluginInternal
         #endregion
     }
 
-    class ReflectionException : Exception
+    internal class ReflectionException : Exception
     {
         public ReflectionException(string message)
             : base(message)

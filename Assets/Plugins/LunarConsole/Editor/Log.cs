@@ -20,28 +20,27 @@
 //
 
 
-﻿using UnityEngine;
-
-using System;
-using System.Collections;
+﻿using System;
+using System.Diagnostics;
+using Debug = UnityEngine.Debug;
 
 namespace LunarConsoleEditorInternal
 {
-    static class Log
+    internal static class Log
     {
-        [System.Diagnostics.Conditional("LUNAR_CONSOLE_DEVELOPMENT")]
+        [Conditional("LUNAR_CONSOLE_DEVELOPMENT")]
         public static void d(string format, params object[] args)
         {
             Debug.Log(TryFormat(format, args));
         }
 
-        [System.Diagnostics.Conditional("LUNAR_CONSOLE_DEVELOPMENT")]
+        [Conditional("LUNAR_CONSOLE_DEVELOPMENT")]
         public static void e(string format, params object[] args)
         {
             Debug.LogError(TryFormat(format, args));
         }
 
-        [System.Diagnostics.Conditional("LUNAR_CONSOLE_DEVELOPMENT")]
+        [Conditional("LUNAR_CONSOLE_DEVELOPMENT")]
         public static void e(Exception e, string format, params object[] args)
         {
             Log.e(format, args);

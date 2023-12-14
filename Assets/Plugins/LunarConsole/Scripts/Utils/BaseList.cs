@@ -25,13 +25,13 @@ using System.Collections.Generic;
 
 namespace LunarConsolePluginInternal
 {
-    abstract class BaseList<T> where T : class // TODO: thread safety
+    internal abstract class BaseList<T> where T : class // TODO: thread safety
     {
         protected readonly List<T> list;
 
         private readonly T nullElement;
-        private int removedCount;
         private bool locked;
+        private int removedCount;
 
         protected BaseList(T nullElement)
             : this(nullElement, 0)
@@ -40,7 +40,7 @@ namespace LunarConsolePluginInternal
 
         protected BaseList(T nullElement, int capacity)
             : this(new List<T>(capacity), nullElement)
-        {   
+        {
             if (nullElement == null)
             {
                 throw new ArgumentNullException("nullElement");
@@ -52,6 +52,8 @@ namespace LunarConsolePluginInternal
             this.list = list;
             this.nullElement = nullElement;
         }
+
+        public virtual int Count => list.Count - removedCount;
 
         public virtual bool Add(T e)
         {
@@ -105,10 +107,11 @@ namespace LunarConsolePluginInternal
         {
             if (locked)
             {
-                for (int i = 0; i < list.Count; ++i)
+                for (var i = 0; i < list.Count; ++i)
                 {
                     list[i] = nullElement;
                 }
+
                 removedCount = list.Count;
             }
             else
@@ -133,11 +136,6 @@ namespace LunarConsolePluginInternal
                     --removedCount;
                 }
             }
-        }
-
-        public virtual int Count
-        {
-            get { return list.Count - removedCount; }
         }
 
         protected void Lock()

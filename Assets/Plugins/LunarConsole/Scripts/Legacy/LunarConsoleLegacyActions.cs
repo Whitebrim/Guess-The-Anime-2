@@ -21,43 +21,16 @@
 
 
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-
-using UnityEngine;
-using UnityEngine.Events;
-
-using Object = UnityEngine.Object;
-
 using LunarConsolePlugin;
+using UnityEngine;
 
 namespace LunarConsolePluginInternal
 {
     [Serializable]
     public class LunarConsoleLegacyAction
     {
-        #pragma warning disable 0649
-
-        static readonly object[] kEmptyArgs = {};
-
-        [SerializeField]
-        string m_name;
-
-        [SerializeField]
-        GameObject m_target;
-
-        [SerializeField]
-        string m_componentTypeName;
-
-        [SerializeField]
-        string m_componentMethodName;
-
-        Type m_componentType;
-        MethodInfo m_componentMethod;
-
-        #pragma warning restore 0649
-
         public void Register()
         {
             if (string.IsNullOrEmpty(m_name))
@@ -83,7 +56,7 @@ namespace LunarConsolePluginInternal
             LunarConsole.UnregisterAction(Invoke);
         }
 
-        void Invoke()
+        private void Invoke()
         {
             if (m_target == null)
             {
@@ -111,7 +84,7 @@ namespace LunarConsolePluginInternal
                 }
             }
 
-            var component = m_target.GetComponent(m_componentType);
+            Component component = m_target.GetComponent(m_componentType);
             if (component == null)
             {
                 Log.w("Missing component {0}", m_componentType);
@@ -132,7 +105,7 @@ namespace LunarConsolePluginInternal
             }
         }
 
-        bool ResolveInvocation()
+        private bool ResolveInvocation()
         {
             try
             {
@@ -143,7 +116,8 @@ namespace LunarConsolePluginInternal
                     return false;
                 }
 
-                m_componentMethod = m_componentType.GetMethod(m_componentMethodName, BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic);
+                m_componentMethod =
+                    m_componentType.GetMethod(m_componentMethodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
                 if (m_componentMethod == null)
                 {
                     Log.w("Can't resolve method {0} of type {1}", m_componentMethod, m_componentType);
@@ -176,23 +150,32 @@ namespace LunarConsolePluginInternal
                 ResolveInvocation();
             }
         }
+#pragma warning disable 0649
+
+        private static readonly object[] kEmptyArgs = { };
+
+        [SerializeField] private string m_name;
+
+        [SerializeField] private GameObject m_target;
+
+        [SerializeField] private string m_componentTypeName;
+
+        [SerializeField] private string m_componentMethodName;
+
+        private Type m_componentType;
+        private MethodInfo m_componentMethod;
+
+#pragma warning restore 0649
     }
 
     [Obsolete("Use 'Lunar Console Action' instead")]
     public class LunarConsoleLegacyActions : MonoBehaviour
     {
-        #pragma warning disable 0649
+        public List<LunarConsoleLegacyAction> actions => m_actions;
 
-        [SerializeField]
-        bool m_dontDestroyOnLoad;
+        private bool actionsEnabled => LunarConsoleConfig.actionsEnabled;
 
-        [SerializeField]
-        [HideInInspector]
-        List<LunarConsoleLegacyAction> m_actions;
-
-        #pragma warning restore 0649
-
-        void Awake()
+        private void Awake()
         {
             if (!actionsEnabled)
             {
@@ -205,11 +188,11 @@ namespace LunarConsolePluginInternal
             }
         }
 
-        void Start()
+        private void Start()
         {
             if (actionsEnabled)
             {
-                foreach (var action in m_actions)
+                foreach (LunarConsoleLegacyAction action in m_actions)
                 {
                     action.Register();
                 }
@@ -220,11 +203,11 @@ namespace LunarConsolePluginInternal
             }
         }
 
-        void OnDestroy()
+        private void OnDestroy()
         {
             if (actionsEnabled)
             {
-                foreach (var action in m_actions)
+                foreach (LunarConsoleLegacyAction action in m_actions)
                 {
                     action.Unregister();
                 }
@@ -235,15 +218,12 @@ namespace LunarConsolePluginInternal
         {
             m_actions.Add(action);
         }
+#pragma warning disable 0649
 
-        public List<LunarConsoleLegacyAction> actions
-        {
-            get { return m_actions; }
-        }
+        [SerializeField] private bool m_dontDestroyOnLoad;
 
-        bool actionsEnabled
-        {
-            get { return LunarConsoleConfig.actionsEnabled; }
-        }
+        [SerializeField] [HideInInspector] private List<LunarConsoleLegacyAction> m_actions;
+
+#pragma warning restore 0649
     }
 }

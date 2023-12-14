@@ -20,14 +20,11 @@
 //
 
 
-﻿using UnityEngine;
-using UnityEditor;
-
-using System.Collections;
-using System.IO;
-
+﻿using System.IO;
 using LunarConsolePlugin;
 using LunarConsolePluginInternal;
+using UnityEditor;
+using UnityEngine;
 
 namespace LunarConsoleEditorInternal
 {
@@ -40,37 +37,40 @@ namespace LunarConsoleEditorInternal
 
             string objectName = Path.GetFileNameWithoutExtension(prefabPath);
 
-            if (!silent && !Utils.ShowDialog(messageTitle, "This will create " + objectName + " (" + prefabPath + ") game object in your scene.\n\nYou only need to do it once for the very first scene of your game\n\nContinue?"))
+            if (!silent && !Utils.ShowDialog(messageTitle,
+                    "This will create " + objectName + " (" + prefabPath +
+                    ") game object in your scene.\n\nYou only need to do it once for the very first scene of your game\n\nContinue?"))
             {
                 return;
             }
 
-            LunarConsole[] existing = GameObject.FindObjectsOfType<LunarConsole>();
+            LunarConsole[] existing = Object.FindObjectsOfType<LunarConsole>();
             if (existing != null)
             {
                 foreach (LunarConsole c in existing)
                 {
-                    GameObject.DestroyImmediate(c.gameObject);
+                    Object.DestroyImmediate(c.gameObject);
                 }
             }
 
-            GameObject lunarConsolePrefab = AssetDatabase.LoadAssetAtPath(prefabPath, typeof(GameObject)) as GameObject;
+            var lunarConsolePrefab = AssetDatabase.LoadAssetAtPath(prefabPath, typeof(GameObject)) as GameObject;
             if (lunarConsolePrefab == null)
             {
                 if (!silent)
                 {
                     Utils.ShowDialog(messageTitle, "Can't instantiate " + prefabPath + ": asset not found");
                 }
+
                 return;
             }
 
-            GameObject lunarConsole = PrefabUtility.InstantiatePrefab(lunarConsolePrefab) as GameObject;
+            var lunarConsole = PrefabUtility.InstantiatePrefab(lunarConsolePrefab) as GameObject;
             lunarConsole.name = objectName;
 
             // starting Unity 5.3 we need to add an undo operation or the scene would not be marked dirty
-            #if UNITY_5_3_OR_NEWER
+#if UNITY_5_3_OR_NEWER
             Undo.RegisterCreatedObjectUndo(lunarConsole, "Install Lunar Console");
-            #endif
+#endif
 
             if (!silent)
             {
@@ -91,7 +91,9 @@ namespace LunarConsoleEditorInternal
         public static void SetLunarConsoleEnabled(bool enabled)
         {
             if (LunarConsoleConfig.consoleEnabled == enabled)
+            {
                 return;
+            }
 
             AndroidPlugin.SetEnabled(enabled);
 
@@ -122,7 +124,7 @@ namespace LunarConsoleEditorInternal
             LunarConsoleConfig.consoleEnabled = enabled;
         }
 
-        static void PrintError(bool flag, string message)
+        private static void PrintError(bool flag, string message)
         {
             Debug.LogError("Can't " + (flag ? "enable" : "disable") + " Lunar Console: " + message);
         }

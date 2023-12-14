@@ -21,31 +21,24 @@
 
 
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-
-using UnityEngine;
-using UnityEditor;
-
-using LunarConsolePlugin;
 using LunarConsolePluginInternal;
+using UnityEditor;
+using UnityEngine;
 
 namespace LunarConsoleEditorInternal
 {
-    #pragma warning disable 0618
+#pragma warning disable 0618
     [CustomEditor(typeof(LunarConsoleLegacyActions))]
-    #pragma warning restore 0618
-    class LunarConsoleLegacyActionsEditor : Editor
+#pragma warning restore 0618
+    internal class LunarConsoleLegacyActionsEditor : Editor
     {
-        struct Functions
-        {
-            public string[] names;
-            public Type[] componentTypes;
-            public MethodInfo[] componentMethods;
-        }
+        private const string kPropActions = "m_actions";
+        private const string kPropActionsSize = kPropActions + ".Array.size";
 
-        private static readonly string[] kIgnoredMethods = {
+        private static readonly string[] kIgnoredMethods =
+        {
             "Awake",
             "FixedUpdate",
             "LateUpdate",
@@ -108,15 +101,13 @@ namespace LunarConsoleEditorInternal
             "OnWillRenderObject",
             "Reset",
             "Start",
-            "Update",
+            "Update"
         };
 
-        private const string kPropActions = "m_actions";
-        private const string kPropActionsSize = kPropActions + ".Array.size";
+        private SerializedProperty m_actionsCountProperty;
+        private SerializedProperty m_actionsPropertry;
 
         private int m_selectedIndex = -1;
-        private SerializedProperty m_actionsPropertry;
-        private SerializedProperty m_actionsCountProperty;
 
         private void OnEnable()
         {
@@ -131,7 +122,7 @@ namespace LunarConsoleEditorInternal
             const float height = 45;
 
             EditorGUILayout.Space();
-            var selectedRect = GUILayoutUtility.GetLastRect();
+            Rect selectedRect = GUILayoutUtility.GetLastRect();
             selectedRect.y += selectedRect.height;
             selectedRect.height = height + EditorGUIUtility.standardVerticalSpacing;
 
@@ -139,7 +130,7 @@ namespace LunarConsoleEditorInternal
 
             EditorGUILayout.BeginVertical();
             {
-                for (int i = 0; i < m_actionsPropertry.arraySize; ++i)
+                for (var i = 0; i < m_actionsPropertry.arraySize; ++i)
                 {
                     if (i == m_selectedIndex)
                     {
@@ -150,10 +141,12 @@ namespace LunarConsoleEditorInternal
                     {
                         EditorGUI.BeginChangeCheck();
 
-                        var nameProperty = serializedObject.FindProperty("m_actions.Array.data[" + i + "].m_name");
-                        var targetProperty = serializedObject.FindProperty("m_actions.Array.data[" + i + "].m_target");
-                        var componentTypeProperty = serializedObject.FindProperty("m_actions.Array.data[" + i + "].m_componentTypeName");
-                        var componentMethodProperty = serializedObject.FindProperty("m_actions.Array.data[" + i + "].m_componentMethodName");
+                        SerializedProperty nameProperty = serializedObject.FindProperty("m_actions.Array.data[" + i + "].m_name");
+                        SerializedProperty targetProperty = serializedObject.FindProperty("m_actions.Array.data[" + i + "].m_target");
+                        SerializedProperty componentTypeProperty =
+                            serializedObject.FindProperty("m_actions.Array.data[" + i + "].m_componentTypeName");
+                        SerializedProperty componentMethodProperty =
+                            serializedObject.FindProperty("m_actions.Array.data[" + i + "].m_componentMethodName");
 
                         EditorGUILayout.PropertyField(nameProperty, new GUIContent("Display Name"));
 
@@ -162,7 +155,7 @@ namespace LunarConsoleEditorInternal
                             EditorGUILayout.PropertyField(targetProperty, GUIContent.none, GUILayout.Width(EditorGUIUtility.labelWidth));
                             var target = targetProperty.objectReferenceValue as GameObject;
 
-                            var functions = ListFunctions(target);
+                            Functions functions = ListFunctions(target);
 
                             int oldIndex = ResolveFuntionIndex(functions, componentTypeProperty.stringValue, componentMethodProperty.stringValue);
                             int newIndex = EditorGUILayout.Popup(oldIndex, functions.names);
@@ -170,8 +163,8 @@ namespace LunarConsoleEditorInternal
                             {
                                 if (newIndex >= 2)
                                 {
-                                    var typeName = functions.componentTypes[newIndex - 2].AssemblyQualifiedName;
-                                    var methodName = functions.componentMethods[newIndex - 2].Name;
+                                    string typeName = functions.componentTypes[newIndex - 2].AssemblyQualifiedName;
+                                    string methodName = functions.componentMethods[newIndex - 2].Name;
 
                                     componentTypeProperty.stringValue = typeName;
                                     componentMethodProperty.stringValue = methodName;
@@ -208,6 +201,7 @@ namespace LunarConsoleEditorInternal
             {
                 m_actionsCountProperty.intValue++;
             }
+
             if (GUILayout.Button("Remove"))
             {
                 if (m_selectedIndex >= 0 && m_selectedIndex < m_actionsCountProperty.intValue)
@@ -215,12 +209,13 @@ namespace LunarConsoleEditorInternal
                     m_actionsPropertry.DeleteArrayElementAtIndex(m_selectedIndex);
                 }
             }
+
             EditorGUILayout.EndHorizontal();
 
             serializedObject.ApplyModifiedProperties();
         }
 
-        int ResolveFuntionIndex(Functions functions, string typeName, string methodName)
+        private int ResolveFuntionIndex(Functions functions, string typeName, string methodName)
         {
             if (typeName == null || methodName == null)
             {
@@ -233,25 +228,26 @@ namespace LunarConsoleEditorInternal
                 return 0;
             }
 
-            var functionName = type.Name + "/" + methodName;
+            string functionName = type.Name + "/" + methodName;
 
-            var index = Array.IndexOf(functions.names, functionName);
+            int index = Array.IndexOf(functions.names, functionName);
             return Mathf.Max(0, index);
         }
 
-        Functions ListFunctions(GameObject obj)
+        private Functions ListFunctions(GameObject obj)
         {
-            List<string> functions = new List<string>();
-            List<Type> componentTypes = new List<Type>();
-            List<MethodInfo> componentMethods = new List<MethodInfo>();
+            var functions = new List<string>();
+            var componentTypes = new List<Type>();
+            var componentMethods = new List<MethodInfo>();
             functions.Add("No Function");
 
             if (obj != null)
             {
-                foreach (var component in obj.GetComponents<Component>())
+                foreach (Component component in obj.GetComponents<Component>())
                 {
-                    var type = component.GetType();
-                    var methods = ClassUtils.ListInstanceMethods(type, delegate(MethodInfo method) {
+                    Type type = component.GetType();
+                    List<MethodInfo> methods = ClassUtils.ListInstanceMethods(type, delegate(MethodInfo method)
+                    {
                         return Array.IndexOf(kIgnoredMethods, method.Name) == -1 && // not forbidden name
                                method.ReturnType == typeof(void) && // with no return type
                                method.GetParameters().Length == 0; // and no parameters
@@ -262,7 +258,7 @@ namespace LunarConsoleEditorInternal
                         functions.Add("/");
                     }
 
-                    foreach (var method in methods)
+                    foreach (MethodInfo method in methods)
                     {
                         functions.Add(type.Name + "/" + method.Name);
                         componentTypes.Add(type);
@@ -277,6 +273,13 @@ namespace LunarConsoleEditorInternal
             result.componentMethods = componentMethods.ToArray();
 
             return result;
+        }
+
+        private struct Functions
+        {
+            public string[] names;
+            public Type[] componentTypes;
+            public MethodInfo[] componentMethods;
         }
     }
 }

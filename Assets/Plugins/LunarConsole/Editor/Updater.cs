@@ -20,115 +20,21 @@
 //
 
 
-using UnityEngine;
-using UnityEditor;
-
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Text;
-using System.Threading;
-
 using LunarConsolePluginInternal;
+using UnityEditor;
+using UnityEngine;
 
 namespace LunarConsoleEditorInternal
 {
-    static class Updater
+    internal static class Updater
     {
         private static readonly string kMessageBoxTitle = "Lunar Mobile Console";
 
-        struct UpdateInfo
-        {
-            public readonly string version;
-            public readonly string url;
-            public readonly string message;
-
-            public UpdateInfo(string version, string url, string message)
-            {
-                this.version = version;
-                this.url = url;
-                this.message = message;
-            }
-
-            public override string ToString()
-            {
-                return string.Format("UpdateInfo:\n\tversion={0}\n\turl={1}\n\tmessage={2}", version, url, message);
-            }
-        }
-
-        struct VersionInfo
-        {
-            public readonly int major;
-            public readonly int minor;
-            public readonly int maintenance;
-
-            public VersionInfo(int major, int minor, int maintenace)
-            {
-                this.major = major;
-                this.minor = minor;
-                this.maintenance = maintenace;
-            }
-
-            public static bool TryParse(string value, out VersionInfo info)
-            {
-                if (value.Length > 1 && value.EndsWith("b"))
-                {
-                    value = value.Substring(0, value.Length - 1);
-                }
-
-                if (string.IsNullOrEmpty(value))
-                {
-                    info = default(VersionInfo);
-                    return false;
-                }
-
-                string[] tokens = value.Split('.');
-                if (tokens.Length != 3)
-                {
-                    info = default(VersionInfo);
-                    return false;
-                }
-
-                int major;
-                if (!int.TryParse(tokens[0], out major))
-                {
-                    info = default(VersionInfo);
-                    return false;
-                }
-
-                int minor;
-                if (!int.TryParse(tokens[1], out minor))
-                {
-                    info = default(VersionInfo);
-                    return false;
-                }
-
-                int maintenance;
-                if (!int.TryParse(tokens[2], out maintenance))
-                {
-                    info = default(VersionInfo);
-                    return false;
-                }
-
-                info = new VersionInfo(major, minor, maintenance);
-                return true;
-            }
-
-            public int CompareTo(ref VersionInfo other)
-            {
-                int majorCmp = this.major.CompareTo(other.major);
-                if (majorCmp != 0) return majorCmp;
-
-                int minorCmd = this.minor.CompareTo(other.minor);
-                if (minorCmd != 0) return minorCmd;
-
-                return this.maintenance.CompareTo(other.maintenance);
-            }
-        }
-
-        #pragma warning disable 0649
+#pragma warning disable 0649
         private static LastCheckDate s_lastInstallCheckDate;
-        #pragma warning restore 0649
+#pragma warning restore 0649
 
         public static void TryCheckForUpdates()
         {
@@ -148,8 +54,8 @@ namespace LunarConsoleEditorInternal
 
         public static void CheckForUpdates(bool silent = true)
         {
-            LunarConsoleHttpClient downloader = new LunarConsoleHttpClient(LunarConsoleConfig.fullVersion ? Constants.UpdateJsonURLFull : Constants.UpdateJsonURLFree);
-            downloader.DownloadString(delegate (string response, Exception error)
+            var downloader = new LunarConsoleHttpClient(LunarConsoleConfig.fullVersion ? Constants.UpdateJsonURLFull : Constants.UpdateJsonURLFree);
+            downloader.DownloadString(delegate(string response, Exception error)
             {
                 if (error != null)
                 {
@@ -158,6 +64,7 @@ namespace LunarConsoleEditorInternal
                     {
                         Utils.ShowDialog(kMessageBoxTitle, "Update info is not available.\n\nTry again later.", "OK");
                     }
+
                     return;
                 }
 
@@ -172,7 +79,7 @@ namespace LunarConsoleEditorInternal
 
                     if (PluginVersionChecker.IsNewerVersion(info.version))
                     {
-                        StringBuilder message = new StringBuilder();
+                        var message = new StringBuilder();
                         message.AppendFormat("A new version {0} is available!\n\n", info.version);
                         if (info.message != null && info.message.Length > 0)
                         {
@@ -181,16 +88,14 @@ namespace LunarConsoleEditorInternal
                         }
 
                         Utils.ShowDialog(kMessageBoxTitle, message.ToString(),
-                            new DialogButton("Details...", delegate (string obj)
+                            new DialogButton("Details...", delegate(string obj)
                             {
                                 Application.OpenURL(info.url);
                                 LunarConsoleEditorAnalytics.TrackEvent("Version", "updater_details");
                             }),
-                            new DialogButton("Remind me later", delegate (string obj)
-                            {
-                                LunarConsoleEditorAnalytics.TrackEvent("Version", "updater_later");
-                            }),
-                            new DialogButton("Skip this version", delegate (string obj)
+                            new DialogButton("Remind me later",
+                                delegate(string obj) { LunarConsoleEditorAnalytics.TrackEvent("Version", "updater_later"); }),
+                            new DialogButton("Skip this version", delegate(string obj)
                             {
                                 SetShouldSkipVersion(info.version);
                                 LunarConsoleEditorAnalytics.TrackEvent("Version", "updater_skip");
@@ -203,6 +108,7 @@ namespace LunarConsoleEditorInternal
                         {
                             Utils.ShowMessageDialog(kMessageBoxTitle, "Everything is up to date");
                         }
+
                         Debug.Log("Everything is up to date");
                     }
                 }
@@ -239,7 +145,7 @@ namespace LunarConsoleEditorInternal
                 Log.e(e, "Unable to parse plugin update info");
             }
 
-            updateInfo = default(UpdateInfo);
+            updateInfo = default;
             return false;
         }
 
@@ -250,7 +156,7 @@ namespace LunarConsoleEditorInternal
             {
                 Log.e("Unexpected response 'status': {0}", status);
 
-                updateInfo = default(UpdateInfo);
+                updateInfo = default;
                 return false;
             }
 
@@ -259,7 +165,7 @@ namespace LunarConsoleEditorInternal
             {
                 Log.e("Missing response 'version' string");
 
-                updateInfo = default(UpdateInfo);
+                updateInfo = default;
                 return false;
             }
 
@@ -268,7 +174,7 @@ namespace LunarConsoleEditorInternal
             {
                 Log.e("Missing response 'url' string");
 
-                updateInfo = default(UpdateInfo);
+                updateInfo = default;
                 return false;
             }
 
@@ -277,7 +183,7 @@ namespace LunarConsoleEditorInternal
             {
                 Log.e("Missing response 'message'");
 
-                updateInfo = default(UpdateInfo);
+                updateInfo = default;
                 return false;
             }
 
@@ -285,7 +191,102 @@ namespace LunarConsoleEditorInternal
             return true;
         }
 
-        static class PluginVersionChecker
+        private struct UpdateInfo
+        {
+            public readonly string version;
+            public readonly string url;
+            public readonly string message;
+
+            public UpdateInfo(string version, string url, string message)
+            {
+                this.version = version;
+                this.url = url;
+                this.message = message;
+            }
+
+            public override string ToString()
+            {
+                return string.Format("UpdateInfo:\n\tversion={0}\n\turl={1}\n\tmessage={2}", version, url, message);
+            }
+        }
+
+        private struct VersionInfo
+        {
+            public readonly int major;
+            public readonly int minor;
+            public readonly int maintenance;
+
+            public VersionInfo(int major, int minor, int maintenace)
+            {
+                this.major = major;
+                this.minor = minor;
+                maintenance = maintenace;
+            }
+
+            public static bool TryParse(string value, out VersionInfo info)
+            {
+                if (value.Length > 1 && value.EndsWith("b"))
+                {
+                    value = value.Substring(0, value.Length - 1);
+                }
+
+                if (string.IsNullOrEmpty(value))
+                {
+                    info = default;
+                    return false;
+                }
+
+                string[] tokens = value.Split('.');
+                if (tokens.Length != 3)
+                {
+                    info = default;
+                    return false;
+                }
+
+                int major;
+                if (!int.TryParse(tokens[0], out major))
+                {
+                    info = default;
+                    return false;
+                }
+
+                int minor;
+                if (!int.TryParse(tokens[1], out minor))
+                {
+                    info = default;
+                    return false;
+                }
+
+                int maintenance;
+                if (!int.TryParse(tokens[2], out maintenance))
+                {
+                    info = default;
+                    return false;
+                }
+
+                info = new VersionInfo(major, minor, maintenance);
+                return true;
+            }
+
+            public int CompareTo(ref VersionInfo other)
+            {
+                int majorCmp = major.CompareTo(other.major);
+                if (majorCmp != 0)
+                {
+                    return majorCmp;
+                }
+
+                int minorCmd = minor.CompareTo(other.minor);
+                if (minorCmd != 0)
+                {
+                    return minorCmd;
+                }
+
+                return maintenance.CompareTo(other.maintenance);
+            }
+        }
+
+        private static class PluginVersionChecker
         {
             public static bool IsNewerVersion(string version)
             {
@@ -312,39 +313,11 @@ namespace LunarConsoleEditorInternal
             }
         }
 
-        #region Preferences
-
-        private static readonly string kPrefsKeySkipVersion = Constants.EditorPrefsKeyBase + ".SkipVersion";
-        private static readonly string kPrefsKeyLastUpdateCheckDate = Constants.EditorPrefsKeyBase + ".LastUpdateCheckDate";
-
-        private static bool IsShouldSkipVersion(string version)
-        {
-            string skipVersion = EditorPrefs.GetString(kPrefsKeySkipVersion);
-            return skipVersion == version;
-        }
-
-        private static void SetShouldSkipVersion(string version)
-        {
-            EditorPrefs.SetString(kPrefsKeySkipVersion, version);
-        }
-
-        private static bool GetPrefsFlag(string key)
-        {
-            return EditorPrefs.GetInt(key, 0) != 0;
-        }
-
-        private static void SetPrefsFlag(string key, bool flag)
-        {
-            EditorPrefs.SetInt(key, flag ? 1 : 0);
-        }
-
-        #endregion
-
         #region Last date checker
 
-        class LastCheckDate
+        private class LastCheckDate
         {
-            private string m_key;
+            private readonly string m_key;
 
             public LastCheckDate(string key)
             {
@@ -359,7 +332,7 @@ namespace LunarConsoleEditorInternal
             public bool CanCheckNow()
             {
                 DateTime lastCheckDate = GetDate();
-                int totalDays = (int)(DateTime.Now - lastCheckDate).TotalDays;
+                var totalDays = (int)(DateTime.Now - lastCheckDate).TotalDays;
                 return totalDays > 0;
             }
 
@@ -392,6 +365,7 @@ namespace LunarConsoleEditorInternal
                 {
                     return date;
                 }
+
                 return DateTime.MinValue;
             }
 
@@ -399,6 +373,34 @@ namespace LunarConsoleEditorInternal
             {
                 return GetDate().ToString();
             }
+        }
+
+        #endregion
+
+        #region Preferences
+
+        private static readonly string kPrefsKeySkipVersion = Constants.EditorPrefsKeyBase + ".SkipVersion";
+        private static readonly string kPrefsKeyLastUpdateCheckDate = Constants.EditorPrefsKeyBase + ".LastUpdateCheckDate";
+
+        private static bool IsShouldSkipVersion(string version)
+        {
+            string skipVersion = EditorPrefs.GetString(kPrefsKeySkipVersion);
+            return skipVersion == version;
+        }
+
+        private static void SetShouldSkipVersion(string version)
+        {
+            EditorPrefs.SetString(kPrefsKeySkipVersion, version);
+        }
+
+        private static bool GetPrefsFlag(string key)
+        {
+            return EditorPrefs.GetInt(key, 0) != 0;
+        }
+
+        private static void SetPrefsFlag(string key, bool flag)
+        {
+            EditorPrefs.SetInt(key, flag ? 1 : 0);
         }
 
         #endregion

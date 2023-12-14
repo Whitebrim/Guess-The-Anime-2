@@ -22,11 +22,7 @@
 
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Reflection;
-
-using UnityEngine;
 
 namespace LunarConsolePluginInternal
 {
@@ -48,7 +44,7 @@ namespace LunarConsolePluginInternal
         {
             try
             {
-                return (T) Activator.CreateInstance(t, args);
+                return (T)Activator.CreateInstance(t, args);
             }
             catch (Exception e)
             {
@@ -72,11 +68,30 @@ namespace LunarConsolePluginInternal
         {
             if (type != null)
             {
-                if (type == typeof(int)) return "int";
-                if (type == typeof(float)) return "float";
-                if (type == typeof(string)) return "string";
-                if (type == typeof(long)) return "long";
-                if (type == typeof(bool)) return "bool";
+                if (type == typeof(int))
+                {
+                    return "int";
+                }
+
+                if (type == typeof(float))
+                {
+                    return "float";
+                }
+
+                if (type == typeof(string))
+                {
+                    return "string";
+                }
+
+                if (type == typeof(long))
+                {
+                    return "long";
+                }
+
+                if (type == typeof(bool))
+                {
+                    return "bool";
+                }
 
                 return type.Name;
             }
@@ -91,10 +106,12 @@ namespace LunarConsolePluginInternal
 
         public static List<MethodInfo> ListInstanceMethods(List<MethodInfo> outList, Type type, ListMethodsFilter filter)
         {
-            return ListMethods(outList, type, filter, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+            return ListMethods(outList, type, filter,
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
         }
 
-        public static List<MethodInfo> ListMethods(List<MethodInfo> outList, Type type, ListMethodsFilter filter, BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)
+        public static List<MethodInfo> ListMethods(List<MethodInfo> outList, Type type, ListMethodsFilter filter,
+            BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)
         {
             MethodInfo[] methods = type.GetMethods(flags);
 
@@ -111,6 +128,7 @@ namespace LunarConsolePluginInternal
                     outList.Add(m);
                 }
             }
+
             return outList;
         }
 
@@ -126,7 +144,8 @@ namespace LunarConsolePluginInternal
                 throw new ArgumentNullException("target");
             }
 
-            FieldInfo[] fields = target.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+            FieldInfo[] fields = target.GetType()
+                .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
             foreach (FieldInfo field in fields)
             {
                 if (field.Name == name)

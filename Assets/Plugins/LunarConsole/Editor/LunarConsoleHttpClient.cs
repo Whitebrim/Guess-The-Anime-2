@@ -21,13 +21,8 @@
 
 
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Net;
-
-using UnityEngine;
 using UnityEditor;
-
 #if UNITY_EDITOR_WIN
 using System.Security.Cryptography.X509Certificates;
 using System.Net.Security;
@@ -35,44 +30,12 @@ using System.Net.Security;
 
 namespace LunarConsoleEditorInternal
 {
-    delegate void LunarConsoleHttpDownloaderCallback(string result, Exception error);
+    internal delegate void LunarConsoleHttpDownloaderCallback(string result, Exception error);
 
-    class LunarConsoleHttpClient
+    internal class LunarConsoleHttpClient
     {
-        private Uri m_uri;
-        private WebClient m_client;
-
-        #if UNITY_EDITOR_WIN
-
-        static LunarConsoleHttpClient()
-        {
-            ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
-        }
-
-        private static bool MyRemoteCertificateValidationCallback(System.Object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
-        {
-            if (sslPolicyErrors != SslPolicyErrors.None)
-            {
-                for (int i = 0; i < chain.ChainStatus.Length; i++)
-                {
-                    if (chain.ChainStatus[i].Status != X509ChainStatusFlags.RevocationStatusUnknown)
-                    {
-                        chain.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
-                        chain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
-                        chain.ChainPolicy.UrlRetrievalTimeout = new TimeSpan(0, 1, 0);
-                        chain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllFlags;
-                        bool chainIsValid = chain.Build((X509Certificate2)certificate);
-                        if (!chainIsValid)
-                        {
-                            return false;
-                        }
-                    }
-                }
-            }
-            return true;
-        }
-
-        #endif // UNITY_EDITOR_WIN
+        private readonly WebClient m_client;
+        private readonly Uri m_uri;
 
         public LunarConsoleHttpClient(string uri)
             : this(new Uri(uri))
@@ -90,6 +53,8 @@ namespace LunarConsoleEditorInternal
             m_client = new WebClient();
         }
 
+        public bool IsShowingProgress { get; set; }
+
         public void UploadData(string data, LunarConsoleHttpDownloaderCallback callback)
         {
             if (callback == null)
@@ -104,9 +69,9 @@ namespace LunarConsoleEditorInternal
 
             m_client.UploadStringCompleted += delegate(object sender, UploadStringCompletedEventArgs e)
             {
-                Utils.DispatchOnMainThread(delegate()
+                Utils.DispatchOnMainThread(delegate
                 {
-                    if (this.IsShowingProgress)
+                    if (IsShowingProgress)
                     {
                         EditorUtility.ClearProgressBar();
                     }
@@ -118,7 +83,7 @@ namespace LunarConsoleEditorInternal
                 });
             };
 
-            if (this.IsShowingProgress && EditorUtility.DisplayCancelableProgressBar("Lunar Mobile Console", "Connecting...", 1.0f))
+            if (IsShowingProgress && EditorUtility.DisplayCancelableProgressBar("Lunar Mobile Console", "Connecting...", 1.0f))
             {
                 Cancel();
             }
@@ -140,9 +105,9 @@ namespace LunarConsoleEditorInternal
 
             m_client.DownloadStringCompleted += delegate(object sender, DownloadStringCompletedEventArgs e)
             {
-                Utils.DispatchOnMainThread(delegate()
+                Utils.DispatchOnMainThread(delegate
                 {
-                    if (this.IsShowingProgress)
+                    if (IsShowingProgress)
                     {
                         EditorUtility.ClearProgressBar();
                     }
@@ -154,7 +119,7 @@ namespace LunarConsoleEditorInternal
                 });
             };
 
-            if (this.IsShowingProgress && EditorUtility.DisplayCancelableProgressBar("Lunar Mobile Console", "Connecting...", 1.0f))
+            if (IsShowingProgress && EditorUtility.DisplayCancelableProgressBar("Lunar Mobile Console", "Connecting...", 1.0f))
             {
                 Cancel();
             }
@@ -184,6 +149,38 @@ namespace LunarConsoleEditorInternal
             return addPrefix ? string.Format("{0} Mb", mbytes.ToString("F1")) : mbytes.ToString("F1");
         }
 
-        public bool IsShowingProgress { get; set; }
+#if UNITY_EDITOR_WIN
+
+        static LunarConsoleHttpClient()
+        {
+            ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback;
+        }
+
+        private static bool MyRemoteCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain,
+            SslPolicyErrors sslPolicyErrors)
+        {
+            if (sslPolicyErrors != SslPolicyErrors.None)
+            {
+                for (var i = 0; i < chain.ChainStatus.Length; i++)
+                {
+                    if (chain.ChainStatus[i].Status != X509ChainStatusFlags.RevocationStatusUnknown)
+                    {
+                        chain.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
+                        chain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
+                        chain.ChainPolicy.UrlRetrievalTimeout = new TimeSpan(0, 1, 0);
+                        chain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllFlags;
+                        bool chainIsValid = chain.Build((X509Certificate2)certificate);
+                        if (!chainIsValid)
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
+
+#endif // UNITY_EDITOR_WIN
     }
 }

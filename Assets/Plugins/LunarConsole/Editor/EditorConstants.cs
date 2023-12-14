@@ -20,18 +20,15 @@
 //
 
 
-﻿using UnityEngine;
-using UnityEditor;
-
-using System;
-using System.Collections;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
-
 using LunarConsolePluginInternal;
+using Debug = UnityEngine.Debug;
 
 namespace LunarConsoleEditorInternal
 {
-    static class EditorConstants
+    internal static class EditorConstants
     {
         private static string pluginRootDirectory;
 
@@ -39,7 +36,7 @@ namespace LunarConsoleEditorInternal
         {
             get
             {
-                var pluginRoot = PluginRootDirectory;
+                string pluginRoot = PluginRootDirectory;
                 return pluginRoot != null ? FileUtils.GetAssetPath(pluginRoot, "Scripts", Constants.PluginName + ".prefab") : null;
             }
         }
@@ -48,7 +45,7 @@ namespace LunarConsoleEditorInternal
         {
             get
             {
-                var pluginEditorRoot = PluginEditorRootDirectory;
+                string pluginEditorRoot = PluginEditorRootDirectory;
                 return pluginEditorRoot != null ? FileUtils.GetAssetPath(pluginEditorRoot, "iOS") : null;
             }
         }
@@ -57,7 +54,7 @@ namespace LunarConsoleEditorInternal
         {
             get
             {
-                var pluginEditorRoot = PluginEditorRootDirectory;
+                string pluginEditorRoot = PluginEditorRootDirectory;
                 return pluginEditorRoot != null ? FileUtils.GetAssetPath(pluginEditorRoot, "Android", "lunar-console.aar") : null;
             }
         }
@@ -66,7 +63,7 @@ namespace LunarConsoleEditorInternal
         {
             get
             {
-                var pluginRoot = PluginRootDirectory;
+                string pluginRoot = PluginRootDirectory;
                 return pluginRoot != null ? Path.Combine(pluginRoot, "Editor") : null;
             }
         }
@@ -84,6 +81,7 @@ namespace LunarConsoleEditorInternal
                         return null;
                     }
                 }
+
                 return pluginRootDirectory;
             }
         }
@@ -92,10 +90,10 @@ namespace LunarConsoleEditorInternal
         {
             try
             {
-                string currentFile = new System.Diagnostics.StackTrace(true).GetFrame(0).GetFileName();
+                string currentFile = new StackTrace(true).GetFrame(0).GetFileName();
                 if (currentFile != null && File.Exists(currentFile))
                 {
-                    var currentDirectory = new FileInfo(currentFile).Directory;
+                    DirectoryInfo currentDirectory = new FileInfo(currentFile).Directory;
                     if (currentDirectory.Name != "Editor")
                     {
                         return null;

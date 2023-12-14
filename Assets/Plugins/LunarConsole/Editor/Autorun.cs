@@ -20,20 +20,13 @@
 //
 
 
-using UnityEngine;
-using UnityEditor;
-
-using LunarConsolePlugin;
 using LunarConsolePluginInternal;
-
-using System;
-using System.IO;
-using System.Collections;
+using UnityEditor;
 
 namespace LunarConsoleEditorInternal
 {
     [InitializeOnLoad]
-    static class Autorun
+    internal static class Autorun
     {
         static Autorun()
         {

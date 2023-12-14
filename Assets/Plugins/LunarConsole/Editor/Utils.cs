@@ -20,32 +20,30 @@
 //
 
 
-﻿using UnityEngine;
-using UnityEditor;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
+using UnityEditor;
+using UnityEngine;
 
 namespace LunarConsoleEditorInternal
 {
-    struct DialogButton
+    internal struct DialogButton
     {
         public readonly string title;
         public readonly Action<string> action;
-        
+
         public DialogButton(string title, Action action)
         {
             this.title = title;
-            this.action = action != null ? (Action<string>)(delegate(string obj) { action(); }) : null;
+            this.action = action != null ? delegate { action(); } : null;
         }
-        
+
         public DialogButton(string title, Action<string> action = null)
         {
             this.title = title;
             this.action = action;
         }
-        
+
         internal void PerformAction()
         {
             try
@@ -62,10 +60,10 @@ namespace LunarConsoleEditorInternal
         }
     }
 
-    static class Utils
+    internal static class Utils
     {
         #region Dialogs
-        
+
         internal static bool ShowDialog(string title, string message)
         {
             return EditorUtility.DisplayDialog(title, message, "Ok", "Cancel");
@@ -75,7 +73,7 @@ namespace LunarConsoleEditorInternal
         {
             return EditorUtility.DisplayDialog(title, message, ok);
         }
-        
+
         internal static void ShowDialog(string title, string message, DialogButton buttonOk)
         {
             if (EditorUtility.DisplayDialog(title, message, buttonOk.title))
@@ -83,7 +81,7 @@ namespace LunarConsoleEditorInternal
                 buttonOk.PerformAction();
             }
         }
-        
+
         internal static void ShowDialog(string title, string message, DialogButton buttonOk, DialogButton buttonCancel)
         {
             if (EditorUtility.DisplayDialog(title, message, buttonOk.title, buttonCancel.title))
@@ -95,7 +93,7 @@ namespace LunarConsoleEditorInternal
                 buttonCancel.PerformAction();
             }
         }
-        
+
         internal static void ShowDialog(string title, string message, DialogButton buttonOk, DialogButton buttonCancel, DialogButton buttonAlt)
         {
             int choice = EditorUtility.DisplayDialogComplex(title, message, buttonOk.title, buttonCancel.title, buttonAlt.title);
@@ -112,18 +110,18 @@ namespace LunarConsoleEditorInternal
                     break;
             }
         }
-        
+
         internal static void ShowMessageDialog(string title, string message)
         {
             EditorUtility.DisplayDialog(title, message, "OK");
         }
-        
+
         #endregion
 
         #region Dispatcher
-        
-        private static Queue<Action> s_dispatchQueue = new Queue<Action>();
-        
+
+        private static readonly Queue<Action> s_dispatchQueue = new();
+
         public static void DispatchOnMainThread(Action action)
         {
             lock (s_dispatchQueue)
@@ -135,7 +133,7 @@ namespace LunarConsoleEditorInternal
                 }
             }
         }
-        
+
         private static void RunDispatch()
         {
             lock (s_dispatchQueue)
@@ -145,11 +143,11 @@ namespace LunarConsoleEditorInternal
                     Action action = s_dispatchQueue.Dequeue();
                     action();
                 }
-                
+
                 EditorApplication.update -= RunDispatch;
             }
         }
-        
+
         #endregion
     }
 }

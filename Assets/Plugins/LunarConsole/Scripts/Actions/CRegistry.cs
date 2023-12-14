@@ -22,15 +22,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-
-using UnityEngine;
-
 using LunarConsolePlugin;
 
 namespace LunarConsolePluginInternal
 {
-    delegate bool CActionFilter(CAction action);
+    internal delegate bool CActionFilter(CAction action);
 
     public interface ICRegistryDelegate
     {
@@ -42,10 +38,16 @@ namespace LunarConsolePluginInternal
 
     public class CRegistry
     {
-        private readonly CActionList m_actions = new CActionList();
-        private readonly CVarList m_vars = new CVarList();
+        #region Destroyable
 
-        private ICRegistryDelegate m_delegate;
+        public void Destroy()
+        {
+            actions.Clear();
+            cvars.Clear();
+            registryDelegate = null;
+        }
+
+        #endregion
 
         #region Commands registry
 
@@ -60,13 +62,13 @@ namespace LunarConsolePluginInternal
             {
                 throw new ArgumentException("Action's name is empty");
             }
-            
+
             if (actionDelegate == null)
             {
                 throw new ArgumentNullException("actionDelegate");
             }
 
-            CAction action = m_actions.Find(name);
+            CAction action = actions.Find(name);
             if (action != null)
             {
                 // Log.w("Overriding action: {0}", name);
@@ -75,11 +77,11 @@ namespace LunarConsolePluginInternal
             else
             {
                 action = new CAction(name, actionDelegate);
-                m_actions.Add(action);
+                actions.Add(action);
 
-                if (m_delegate != null)
+                if (registryDelegate != null)
                 {
-                    m_delegate.OnActionRegistered(this, action);
+                    registryDelegate.OnActionRegistered(this, action);
                 }
             }
 
@@ -88,37 +90,25 @@ namespace LunarConsolePluginInternal
 
         public bool Unregister(string name)
         {
-            return Unregister(delegate(CAction action)
-            {
-                return action.Name == name;
-            });
+            return Unregister(delegate(CAction action) { return action.Name == name; });
         }
 
         public bool Unregister(int id)
         {
-            return Unregister(delegate(CAction action)
-            {
-                return action.Id == id;
-            });
+            return Unregister(delegate(CAction action) { return action.Id == id; });
         }
 
         public bool Unregister(Delegate del)
         {
-            return Unregister(delegate(CAction action)
-            {
-                return action.ActionDelegate == del;
-            });
+            return Unregister(delegate(CAction action) { return action.ActionDelegate == del; });
         }
 
         public bool UnregisterAll(object target)
         {
-            return target != null && Unregister(delegate(CAction action)
-            {
-                return action.ActionDelegate.Target == target;
-            });
+            return target != null && Unregister(delegate(CAction action) { return action.ActionDelegate.Target == target; });
         }
 
-        bool Unregister(CActionFilter filter)
+        private bool Unregister(CActionFilter filter)
         {
             if (filter == null)
             {
@@ -126,7 +116,7 @@ namespace LunarConsolePluginInternal
             }
 
             IList<CAction> actionsToRemove = new List<CAction>();
-            foreach (var action in m_actions)
+            foreach (CAction action in actions)
             {
                 if (filter(action))
                 {
@@ -134,7 +124,7 @@ namespace LunarConsolePluginInternal
                 }
             }
 
-            foreach (var action in actionsToRemove)
+            foreach (CAction action in actionsToRemove)
             {
                 RemoveAction(action);
             }
@@ -142,13 +132,13 @@ namespace LunarConsolePluginInternal
             return actionsToRemove.Count > 0;
         }
 
-        bool RemoveAction(CAction action)
+        private bool RemoveAction(CAction action)
         {
-            if (m_actions.Remove(action.Id))
+            if (actions.Remove(action.Id))
             {
-                if (m_delegate != null)
+                if (registryDelegate != null)
                 {
-                    m_delegate.OnActionUnregistered(this, action);
+                    registryDelegate.OnActionUnregistered(this, action);
                 }
 
                 return true;
@@ -159,7 +149,7 @@ namespace LunarConsolePluginInternal
 
         public CAction FindAction(int id)
         {
-            return m_actions.Find(id);
+            return actions.Find(id);
         }
 
         #endregion
@@ -168,54 +158,33 @@ namespace LunarConsolePluginInternal
 
         public void Register(CVar cvar)
         {
-            m_vars.Add(cvar);
+            cvars.Add(cvar);
 
-            if (m_delegate != null)
+            if (registryDelegate != null)
             {
-                m_delegate.OnVariableRegistered(this, cvar);
+                registryDelegate.OnVariableRegistered(this, cvar);
             }
         }
 
         public CVar FindVariable(int variableId)
         {
-            return m_vars.Find(variableId);
+            return cvars.Find(variableId);
         }
 
         public CVar FindVariable(string variableName)
         {
-            return m_vars.Find(variableName);
-        }
-
-        #endregion
-
-        #region Destroyable
-
-        public void Destroy()
-        {
-            m_actions.Clear();
-            m_vars.Clear();
-            m_delegate = null;
+            return cvars.Find(variableName);
         }
 
         #endregion
 
         #region Properties
 
-        public ICRegistryDelegate registryDelegate
-        {
-            get { return m_delegate; }
-            set { m_delegate = value; }
-        }
+        public ICRegistryDelegate registryDelegate { get; set; }
 
-        public CActionList actions
-        {
-            get { return m_actions; }
-        }
+        public CActionList actions { get; } = new();
 
-        public CVarList cvars
-        {
-            get { return m_vars; }
-        }
+        public CVarList cvars { get; } = new();
 
         #endregion
     }
