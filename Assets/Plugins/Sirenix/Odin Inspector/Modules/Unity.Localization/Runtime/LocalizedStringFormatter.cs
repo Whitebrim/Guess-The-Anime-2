@@ -4,12 +4,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Sirenix.Serialization;
-using System.Reflection;
-using UnityEngine.Localization;
 using System;
+using System.Reflection;
+using Sirenix.OdinInspector.Modules.Localization;
+using Sirenix.Serialization;
+using UnityEngine.Localization;
 
-[assembly: RegisterFormatter(typeof(Sirenix.OdinInspector.Modules.Localization.LocalizedStringFormatter))]
+[assembly: RegisterFormatter(typeof(LocalizedStringFormatter))]
 
 namespace Sirenix.OdinInspector.Modules.Localization
 {
@@ -19,13 +20,14 @@ namespace Sirenix.OdinInspector.Modules.Localization
 
         static LocalizedStringFormatter()
         {
-            m_LocalVariables_Field = typeof(LocalizedString).GetField("m_LocalVariables", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            m_LocalVariables_Field =
+                typeof(LocalizedString).GetField("m_LocalVariables", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
             if (m_LocalVariables_Field == null)
             {
                 DefaultLoggers.DefaultLogger.LogError("Could not find field 'UnityEngine.LocalizedString.m_LocalVariables'" +
-                    " - the internals of the Localization package have changed, and deserialization of Odin-serialized" +
-                    " LocalizedString instances may be broken in some cases.");
+                                                      " - the internals of the Localization package have changed, and deserialization of Odin-serialized" +
+                                                      " LocalizedString instances may be broken in some cases.");
             }
         }
 
@@ -40,8 +42,8 @@ namespace Sirenix.OdinInspector.Modules.Localization
 
             if (m_LocalVariables_Field != null && value != null)
             {
-                var localVariablesList = m_LocalVariables_Field.GetValue(value);
-                
+                object localVariablesList = m_LocalVariables_Field.GetValue(value);
+
                 // This list is not allowed to be null!
                 if (localVariablesList == null)
                 {
