@@ -1,9 +1,10 @@
+using System;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
 namespace Core.Services.Audio
 {
-    [System.Serializable]
+    [Serializable]
     public class AudioBase
     {
         public AssetReferenceT<AudioClip> Clip;

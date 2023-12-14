@@ -6,12 +6,6 @@ namespace Core.Infrastructure.States
     {
         private GameStateMachine _stateMachine;
 
-        [Inject]
-        public void Construct(GameStateMachine stateMachine)
-        {
-            _stateMachine = stateMachine;
-        }
-
         public void Enter()
         {
             EnterLoadLevel();
@@ -21,6 +15,15 @@ namespace Core.Infrastructure.States
         {
         }
 
-        private void EnterLoadLevel() => _stateMachine.Enter<LoadLevelState, string>(SceneName.MainMenu);
+        [Inject]
+        public void Construct(GameStateMachine stateMachine)
+        {
+            _stateMachine = stateMachine;
+        }
+
+        private void EnterLoadLevel()
+        {
+            _stateMachine.Enter<LoadLevelState, string>(SceneName.MainMenu);
+        }
     }
 }

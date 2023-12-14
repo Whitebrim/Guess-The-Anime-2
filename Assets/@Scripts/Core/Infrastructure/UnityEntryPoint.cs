@@ -1,6 +1,8 @@
+using System;
 using Core.Services;
 using LunarConsolePlugin;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
 
 namespace Core.Infrastructure
@@ -10,7 +12,7 @@ namespace Core.Infrastructure
         private static bool _isInitialized;
 
         [SerializeField] private LunarConsole lunarConsole;
-        
+
         private void Awake()
         {
             if (SceneManager.GetActiveScene().buildIndex != 0)
@@ -27,14 +29,14 @@ namespace Core.Infrastructure
             DontDestroyOnLoad(this);
 
             ApplicationInit();
-            
+
             _isInitialized = true;
         }
-        
+
         private void ApplicationInit()
         {
-            Application.targetFrameRate = (int)System.Math.Max(Screen.currentResolution.refreshRateRatio.value, 60);
-            UnityEngine.AddressableAssets.Addressables.InitializeAsync();
+            Application.targetFrameRate = (int)Math.Max(Screen.currentResolution.refreshRateRatio.value, 60);
+            Addressables.InitializeAsync();
             lunarConsole.InitInstance();
         }
     }

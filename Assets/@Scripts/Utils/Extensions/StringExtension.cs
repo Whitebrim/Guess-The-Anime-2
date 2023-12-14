@@ -5,7 +5,9 @@ public static class StringExtensions
         if (string.IsNullOrEmpty(input) || input.Length < length)
         {
             return input;
-        };
+        }
+
+        ;
 
         return input.Substring(0, length);
     }

@@ -1,7 +1,8 @@
 using System;
 using Sirenix.OdinInspector;
-using UnityEngine.AddressableAssets;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using Object = UnityEngine.Object;
 
 namespace Core.Services.AssetManagement
 {
@@ -12,11 +13,14 @@ namespace Core.Services.AssetManagement
     }
 
     [Serializable]
-    public class ConditionalAsset<TObj> where TObj : UnityEngine.Object
+    public class ConditionalAsset<TObj> where TObj : Object
     {
-        public TObj Load => Debug.isDebugBuild ? debug.LoadAndCache() : release.LoadAndCache();
+        [SerializeField] [HorizontalGroup(LabelWidth = 60, MarginLeft = 0.01f)]
+        private AssetReferenceT<TObj> release;
 
-        [SerializeField, HorizontalGroup(LabelWidth = 60, MarginLeft = 0.01f)] private AssetReferenceT<TObj> release;
-        [SerializeField, HorizontalGroup(MarginLeft = 0.05f, MarginRight = 0.01f)] private AssetReferenceT<TObj> debug;
+        [SerializeField] [HorizontalGroup(MarginLeft = 0.05f, MarginRight = 0.01f)]
+        private AssetReferenceT<TObj> debug;
+
+        public TObj Load => Debug.isDebugBuild ? debug.LoadAndCache() : release.LoadAndCache();
     }
 }

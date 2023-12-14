@@ -6,7 +6,7 @@ public class FitPanelToCamera : MonoBehaviour
     private Camera _mainCamera;
 
     [Button]
-    void Start()
+    private void Start()
     {
         _mainCamera = Camera.main;
         Vector3 cameraPosition = _mainCamera.transform.position;
@@ -22,7 +22,8 @@ public class FitPanelToCamera : MonoBehaviour
         {
             float height = screenSize.y;
             transform.localScale = new Vector3(height * desiredRatio, height);
-        } else
+        }
+        else
         {
             float width = screenSize.x;
             transform.localScale = new Vector3(width, width / desiredRatio);

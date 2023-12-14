@@ -4,8 +4,8 @@ namespace Core.Services.Audio
 {
     public class AudioSystem : MonoBehaviour
     {
-        [SerializeField] AudioSource music;
-        [SerializeField] AudioSource effects;
+        [SerializeField] private AudioSource music;
+        [SerializeField] private AudioSource effects;
 
         public void ChangeVolume(AudioType audioType, float value)
         {
@@ -22,13 +22,21 @@ namespace Core.Services.Audio
 
         public void PlayClip(AudioBase sound, AudioType audioType, float volumeScale = 1)
         {
-            if (sound is null || sound.Clip is null) return;
+            if (sound is null || sound.Clip is null)
+            {
+                return;
+            }
+
             PlayClip(sound.Clip.LoadAndCache(), audioType, volumeScale);
         }
 
         public void PlayClip(AudioClip clip, AudioType audioType, float volumeScale = 1)
         {
-            if (clip is null) return;
+            if (clip is null)
+            {
+                return;
+            }
+
             switch (audioType)
             {
                 case AudioType.MUSIC:

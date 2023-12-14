@@ -10,12 +10,16 @@ namespace Core.Services.SceneLoader
     {
         private ICoroutineRunner _coroutineRunner;
 
-        [Inject]
-        private void Construct(ICoroutineRunner coroutineRunner) =>
-            _coroutineRunner = coroutineRunner;
-
-        public void Load(string sceneName, Action onLoad = null) =>
+        public void Load(string sceneName, Action onLoad = null)
+        {
             _coroutineRunner.StartCoroutine(LoadScene(sceneName, onLoad));
+        }
+
+        [Inject]
+        private void Construct(ICoroutineRunner coroutineRunner)
+        {
+            _coroutineRunner = coroutineRunner;
+        }
 
         private IEnumerator LoadScene(string sceneName, Action onLoad)
         {

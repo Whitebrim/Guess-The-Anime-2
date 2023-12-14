@@ -19,8 +19,16 @@ namespace UI
 
         public void Change()
         {
-            if (_locales.Count == 0) Start();
-            if (_locales.Count == 0) return;
+            if (_locales.Count == 0)
+            {
+                Start();
+            }
+
+            if (_locales.Count == 0)
+            {
+                return;
+            }
+
             LocalizationSettings.SelectedLocale = _locales[(_locales.IndexOf(LocalizationSettings.SelectedLocale) + 1) % _locales.Count];
         }
     }

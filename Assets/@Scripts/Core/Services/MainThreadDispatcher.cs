@@ -6,29 +6,35 @@ namespace Core.Services
 {
     public class MainThreadDispatcher : MonoBehaviour
     {
-        private readonly List<Action> _actions = new List<Action>();
-        private bool _queued = false;
+        private readonly List<Action> _actions = new();
+        private bool _queued;
 
-        public void Dispatch(Action action) {
-            lock(_actions) {
-                _actions.Add(action);
-                 _queued = true;
-            }
-        }
-
-        void Update()
+        private void Update()
         {
-            if(_queued) {
+            if (_queued)
+            {
                 Action[] actions = null;
 
-                lock(_actions) {
+                lock (_actions)
+                {
                     actions = _actions.ToArray();
                     _actions.Clear();
                     _queued = false;
                 }
 
                 foreach (Action action in actions)
+                {
                     action();
+                }
+            }
+        }
+
+        public void Dispatch(Action action)
+        {
+            lock (_actions)
+            {
+                _actions.Add(action);
+                _queued = true;
             }
         }
     }

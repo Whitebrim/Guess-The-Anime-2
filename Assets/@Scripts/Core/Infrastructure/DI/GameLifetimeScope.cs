@@ -7,7 +7,6 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-
 namespace Core.Infrastructure.DI
 {
     public class GameLifetimeScope : LifetimeScope
@@ -38,7 +37,7 @@ namespace Core.Infrastructure.DI
 
             builder.Register<SceneLoader>(Lifetime.Singleton).AsImplementedInterfaces();
             builder.Register<AddressablesProvider>(Lifetime.Singleton).AsImplementedInterfaces();
-            builder.RegisterInstance<ConditionalAssetManager>(conditionalAssetManager);
+            builder.RegisterInstance(conditionalAssetManager);
         }
     }
 }

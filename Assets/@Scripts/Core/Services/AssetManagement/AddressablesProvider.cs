@@ -9,8 +9,10 @@ namespace Core.Services.AssetManagement
     {
         private static readonly Dictionary<string, Object> Cache = new();
 
-        public TObject Load<TObject>(string path) where TObject : Object =>
-            Addressables.LoadAssetAsync<TObject>(path).WaitForCompletion();
+        public TObject Load<TObject>(string path) where TObject : Object
+        {
+            return Addressables.LoadAssetAsync<TObject>(path).WaitForCompletion();
+        }
 
         public static TObject LoadPrefab<TObject>(AssetReferenceGameObject assetReference) where TObject : Object
         {
@@ -28,7 +30,7 @@ namespace Core.Services.AssetManagement
         {
             if (!Cache.ContainsKey(assetReference.AssetGUID))
             {
-                assetReference.LoadAssetAsync().Completed += (result) =>
+                assetReference.LoadAssetAsync().Completed += result =>
                 {
                     Cache.Add(assetReference.AssetGUID, result.Result.GetComponent<TObject>());
                     onLoad?.Invoke((TObject)Cache[assetReference.AssetGUID]);

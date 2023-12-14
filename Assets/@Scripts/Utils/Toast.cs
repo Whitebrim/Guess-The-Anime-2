@@ -3,10 +3,10 @@ using UnityEngine;
 
 public class Toast
 {
-    private static Toast _instance => LazyLoader.Value;
-    private string toastString;
+    private static readonly Lazy<Toast> LazyLoader = new(() => new Toast());
     private AndroidJavaObject currentActivity;
-    private static readonly Lazy<Toast> LazyLoader = new Lazy<Toast>(() => new Toast());
+    private string toastString;
+    private static Toast _instance => LazyLoader.Value;
 
     public static void Show(string toastString)
     {
@@ -22,11 +22,11 @@ public class Toast
 
     private void ShowToast()
     {
-        AndroidJavaObject context = currentActivity.Call<AndroidJavaObject>("getApplicationContext");
-        AndroidJavaClass Toast = new AndroidJavaClass("android.widget.Toast");
-        AndroidJavaObject javaString = new AndroidJavaObject("java.lang.String", toastString);
+        var context = currentActivity.Call<AndroidJavaObject>("getApplicationContext");
+        var Toast = new AndroidJavaClass("android.widget.Toast");
+        var javaString = new AndroidJavaObject("java.lang.String", toastString);
 
-        AndroidJavaObject toast = Toast.CallStatic<AndroidJavaObject>("makeText", context, javaString, Toast.GetStatic<int>("LENGTH_LONG"));
+        var toast = Toast.CallStatic<AndroidJavaObject>("makeText", context, javaString, Toast.GetStatic<int>("LENGTH_LONG"));
         toast.Call("show");
     }
 }

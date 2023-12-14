@@ -4,8 +4,8 @@ namespace Core.Infrastructure.States
 {
     public class GameStateMachine
     {
-        private IObjectResolver _resolver;
         private IBaseState _currentState;
+        private IObjectResolver _resolver;
 
         [Inject]
         private void Construct(IObjectResolver resolver)
@@ -21,18 +21,20 @@ namespace Core.Infrastructure.States
 
         public void Enter<TState, TPayload>(TPayload payload) where TState : class, IPayloadedState<TPayload>
         {
-            TState state = ChangeState<TState>();
+            var state = ChangeState<TState>();
             state.Enter(payload);
         }
 
-        private TState GetState<TState>() where TState : class, IBaseState =>
-            _resolver.Resolve<TState>();
+        private TState GetState<TState>() where TState : class, IBaseState
+        {
+            return _resolver.Resolve<TState>();
+        }
 
         private TState ChangeState<TState>() where TState : class, IBaseState
         {
             _currentState?.Exit();
 
-            TState state = GetState<TState>();
+            var state = GetState<TState>();
             _currentState = state;
 
             return state;

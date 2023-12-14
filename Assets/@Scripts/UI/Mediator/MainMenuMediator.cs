@@ -3,7 +3,7 @@ using Sirenix.OdinInspector;
 
 namespace UI.Mediator
 {
-    class MainMenuMediator : Mediator
+    internal class MainMenuMediator : Mediator
     {
         [Button("Play")]
         public void Play()

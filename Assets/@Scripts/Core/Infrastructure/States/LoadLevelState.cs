@@ -5,8 +5,17 @@ namespace Core.Infrastructure.States
 {
     public class LoadLevelState : IPayloadedState<string>
     {
-        private GameStateMachine _stateMachine;
         private ISceneLoader _sceneLoader;
+        private GameStateMachine _stateMachine;
+
+        public void Enter(string sceneName)
+        {
+            _sceneLoader.Load(sceneName, OnLoaded);
+        }
+
+        public void Exit()
+        {
+        }
 
         [Inject]
         private void Construct(GameStateMachine stateMachine, ISceneLoader sceneLoader)
@@ -15,15 +24,9 @@ namespace Core.Infrastructure.States
             _sceneLoader = sceneLoader;
         }
 
-        public void Enter(string sceneName) => _sceneLoader.Load(sceneName, OnLoaded);
-
         private void OnLoaded()
         {
             //_stateMachine.Enter<GameLoopState>();
-        }
-
-        public void Exit()
-        {
         }
     }
 }

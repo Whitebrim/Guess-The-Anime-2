@@ -4,14 +4,15 @@ using UnityEngine;
 [ExecuteAlways]
 public class GlobalPositionDebug : MonoBehaviour
 {
-    [Header("Global")]
-    [SerializeField] Vector3 globalPosition;
-    [SerializeField] Quaternion globalRotation;
-    [SerializeField] Vector3 lossyScale;
-    [Header("Local")]
-    [SerializeField] Vector3 localPosition;
-    [SerializeField] Quaternion localRotation;
-    [SerializeField] Vector3 localScale;
+    [Header("Global")] [SerializeField] private Vector3 globalPosition;
+
+    [SerializeField] private Quaternion globalRotation;
+    [SerializeField] private Vector3 lossyScale;
+
+    [Header("Local")] [SerializeField] private Vector3 localPosition;
+
+    [SerializeField] private Quaternion localRotation;
+    [SerializeField] private Vector3 localScale;
 
     private void Update()
     {

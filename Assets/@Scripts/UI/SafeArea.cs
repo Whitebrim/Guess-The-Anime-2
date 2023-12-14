@@ -9,11 +9,11 @@ public class SafeArea : MonoBehaviour
 
     private void UpdateSafeArea()
     {
-        var safeArea = Screen.safeArea;
+        Rect safeArea = Screen.safeArea;
         var myRectTransform = GetComponent<RectTransform>();
 
-        var anchorMin = safeArea.position;
-        var anchorMax = safeArea.position + safeArea.size;
+        Vector2 anchorMin = safeArea.position;
+        Vector2 anchorMax = safeArea.position + safeArea.size;
 
         anchorMin.x /= Screen.width;
         anchorMin.y /= Screen.height;
