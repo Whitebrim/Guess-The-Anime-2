@@ -216,11 +216,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3539172212219553765, guid: 5b79929718d81744e87f33b668d879ca, type: 3}
       propertyPath: m_Name
-      value: Game Bootstrapper
-      objectReference: {fileID: 0}
-    - target: {fileID: 3539172212219553767, guid: 5b79929718d81744e87f33b668d879ca, type: 3}
-      propertyPath: m_RootOrder
-      value: 0
+      value: Unity Entry Point
       objectReference: {fileID: 0}
     - target: {fileID: 3539172212219553767, guid: 5b79929718d81744e87f33b668d879ca, type: 3}
       propertyPath: m_LocalPosition.x
@@ -267,6 +263,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5b79929718d81744e87f33b668d879ca, type: 3}
+--- !u!114 &1352672701 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5948063568539965666, guid: 5b79929718d81744e87f33b668d879ca, type: 3}
+  m_PrefabInstance: {fileID: 1352672700}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7e4bf72a4575a040999d831b1a21de3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1352672702 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5827138914737742480, guid: 5b79929718d81744e87f33b668d879ca, type: 3}
@@ -298,17 +305,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1d4c431fa5bf63546884ac4fd376db22, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1352672705 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3539172212219553766, guid: 5b79929718d81744e87f33b668d879ca, type: 3}
-  m_PrefabInstance: {fileID: 1352672700}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f598bcd7ad3f75b4d92755e9117d7e09, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1419877270
@@ -427,10 +423,10 @@ MonoBehaviour:
     TypeName: 
   autoRun: 1
   autoInjectGameObjects: []
-  gameBootstrapper: {fileID: 1352672705}
-  audioSystem: {fileID: 1352672704}
+  unityEntryPoint: {fileID: 1352672701}
   mainThreadDispatcher: {fileID: 1352672703}
   applicationFocus: {fileID: 1352672702}
+  audioSystem: {fileID: 1352672704}
   conditionalAssetManager: {fileID: 11400000, guid: 1628f6128fad6ed4fabc492acba43bb9, type: 2}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

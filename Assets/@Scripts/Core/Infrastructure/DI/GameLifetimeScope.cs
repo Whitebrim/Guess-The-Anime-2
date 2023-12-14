@@ -12,21 +12,21 @@ namespace Core.Infrastructure.DI
 {
     public class GameLifetimeScope : LifetimeScope
     {
-        [SerializeField] private GameBootstrapper gameBootstrapper;
-        [SerializeField] private AudioSystem audioSystem;
+        [SerializeField] private UnityEntryPoint unityEntryPoint;
         [SerializeField] private MainThreadDispatcher mainThreadDispatcher;
         [SerializeField] private ApplicationFocus applicationFocus;
+        [SerializeField] private AudioSystem audioSystem;
         [SerializeField] private ConditionalAssetManager conditionalAssetManager;
 
         protected override void Configure(IContainerBuilder builder)
         {
-            if (GameBootstrapper.IsInitialized) return;
-
             DontDestroyOnLoad(gameObject);
 
             builder.Register<IObjectResolver, Container>(Lifetime.Scoped);
 
-            builder.RegisterComponent(gameBootstrapper).AsImplementedInterfaces();
+            builder.RegisterEntryPoint<GameBootstrapper>();
+
+            builder.RegisterComponent(unityEntryPoint).AsImplementedInterfaces();
             builder.RegisterComponent(audioSystem);
             builder.RegisterComponent(mainThreadDispatcher);
             builder.RegisterComponent(applicationFocus);

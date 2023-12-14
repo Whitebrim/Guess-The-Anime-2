@@ -9,13 +9,13 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3539172212219553767}
-  - component: {fileID: 3539172212219553766}
+  - component: {fileID: 5948063568539965666}
   - component: {fileID: 274702156741676983}
   - component: {fileID: 5827138914737742480}
   - component: {fileID: 8567642518792938761}
   - component: {fileID: 6459922635515106033}
   m_Layer: 0
-  m_Name: Game Bootstrapper
+  m_Name: Unity Entry Point
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -38,7 +38,7 @@ Transform:
   - {fileID: 1604298756185118204}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3539172212219553766
+--- !u!114 &5948063568539965666
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -47,7 +47,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3539172212219553765}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f598bcd7ad3f75b4d92755e9117d7e09, type: 3}
+  m_Script: {fileID: 11500000, guid: d7e4bf72a4575a040999d831b1a21de3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   lunarConsole: {fileID: 6459922635515106033}
