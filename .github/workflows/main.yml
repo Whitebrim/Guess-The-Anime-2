@@ -59,4 +59,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: gta_v${{ steps.buildStep.outputs.buildVersion }}.apk
-          path: Builds/Android.apk
+          path: Builds/Android/Android.apk
