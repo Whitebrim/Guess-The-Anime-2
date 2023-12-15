@@ -47,7 +47,7 @@ jobs:
         with:
           targetPlatform: Android
           buildsPath: Builds
-          buildName: gta_v${{ outputs.buildVersion }}
+          buildName: gta_v${{ steps.buildStep.outputs.buildVersion }}
           androidKeystoreName: user.keystore
           androidKeystoreBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASS }}
