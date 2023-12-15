@@ -99,3 +99,4 @@ crashlytics-build.properties
 
 
 Assets/Plugins/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF - Fallback.asset
+*.keystore
