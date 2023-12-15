@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: Brim
-  productName: Guess The Anime Reborn
+  productName: Guess The Anime 2
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -136,7 +136,7 @@ PlayerSettings:
   vulkanEnableLateAcquireNextImage: 0
   vulkanEnableCommandBufferRecycling: 1
   loadStoreDebugModeEnabled: 0
-  bundleVersion: 0.1
+  bundleVersion: 0.0.1
   preloadedAssets: []
   metroInputSource: 0
   wsaTransparentSwapchain: 0
@@ -269,7 +269,7 @@ PlayerSettings:
   AndroidEnableTango: 0
   androidEnableBanner: 1
   androidUseLowAccuracyLocation: 0
-  androidUseCustomKeystore: 0
+  androidUseCustomKeystore: 1
   m_AndroidBanners:
   - width: 320
     height: 180
@@ -934,7 +934,7 @@ PlayerSettings:
   cloudProjectId: e3aadd0f-3744-48f1-beba-7c9885fa435c
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: Guess The Anime Reborn
+  projectName: Guess The Anime 2
   organizationId: whitebrim
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
