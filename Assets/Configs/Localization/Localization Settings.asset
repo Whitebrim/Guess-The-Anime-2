@@ -24,19 +24,24 @@ MonoBehaviour:
   m_StringDatabase:
     rid: 2198772881776705541
   m_Metadata:
-    m_Items: []
+    m_Items:
+    - rid: 2390859815505625088
   m_ProjectLocaleIdentifier:
-    m_Code: en
+    m_Code: ru
+  m_PreloadBehavior: 1
   m_InitializeSynchronously: 0
   references:
     version: 2
     RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
     - rid: 2198772881776705536
       type: {class: CommandLineLocaleSelector, ns: UnityEngine.Localization.Settings, asm: Unity.Localization}
       data:
         m_CommandLineArgument: -language=
     - rid: 2198772881776705537
       type: {class: SystemLocaleSelector, ns: UnityEngine.Localization.Settings, asm: Unity.Localization}
+      data: 
     - rid: 2198772881776705538
       type: {class: SpecificLocaleSelector, ns: UnityEngine.Localization.Settings, asm: Unity.Localization}
       data:
@@ -44,17 +49,26 @@ MonoBehaviour:
           m_Code: en
     - rid: 2198772881776705539
       type: {class: LocalesProvider, ns: UnityEngine.Localization.Settings, asm: Unity.Localization}
+      data: 
     - rid: 2198772881776705540
       type: {class: LocalizedAssetDatabase, ns: UnityEngine.Localization.Settings, asm: Unity.Localization}
       data:
         m_DefaultTableReference:
           m_TableCollectionName: 
+        m_CustomTableProvider:
+          rid: -2
+        m_CustomTablePostprocessor:
+          rid: -2
         m_UseFallback: 0
     - rid: 2198772881776705541
       type: {class: LocalizedStringDatabase, ns: UnityEngine.Localization.Settings, asm: Unity.Localization}
       data:
         m_DefaultTableReference:
           m_TableCollectionName: 
+        m_CustomTableProvider:
+          rid: -2
+        m_CustomTablePostprocessor:
+          rid: -2
         m_UseFallback: 0
         m_MissingTranslationState: 1
         m_NoTranslationFoundMessage: No translation found for '{key}' in {table.TableCollectionName}
@@ -119,14 +133,19 @@ MonoBehaviour:
         m_Groups: []
     - rid: 2198772881776705547
       type: {class: DictionarySource, ns: UnityEngine.Localization.SmartFormat.Extensions, asm: Unity.Localization}
+      data: 
     - rid: 2198772881776705548
       type: {class: ValueTupleSource, ns: UnityEngine.Localization.SmartFormat.Extensions, asm: Unity.Localization}
+      data: 
     - rid: 2198772881776705549
       type: {class: XmlSource, ns: UnityEngine.Localization.SmartFormat.Extensions, asm: Unity.Localization}
+      data: 
     - rid: 2198772881776705550
       type: {class: ReflectionSource, ns: UnityEngine.Localization.SmartFormat.Extensions, asm: Unity.Localization}
+      data: 
     - rid: 2198772881776705551
       type: {class: DefaultSource, ns: UnityEngine.Localization.SmartFormat.Extensions, asm: Unity.Localization}
+      data: 
     - rid: 2198772881776705552
       type: {class: PluralLocalizationFormatter, ns: UnityEngine.Localization.SmartFormat.Extensions, asm: Unity.Localization}
       data:
@@ -190,3 +209,15 @@ MonoBehaviour:
       type: {class: PlayerPrefLocaleSelector, ns: UnityEngine.Localization.Settings, asm: Unity.Localization}
       data:
         m_PlayerPreferenceKey: selected-locale
+    - rid: 2390859815505625088
+      type: {class: AppInfo, ns: UnityEngine.Localization.Platform.Android, asm: Unity.Localization}
+      data:
+        m_DisplayName:
+          m_TableReference:
+            m_TableCollectionName: GUID:d0798ebf8922c064aab9210bc3874abf
+          m_TableEntryReference:
+            m_KeyId: 78403018000760832
+            m_Key: 
+          m_FallbackState: 0
+          m_WaitForCompletion: 0
+          m_LocalVariables: []
