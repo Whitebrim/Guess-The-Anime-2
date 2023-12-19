@@ -38,7 +38,7 @@ jobs:
 
       # Build
       - name: Build
-        id: build-1
+        id: build
         uses: game-ci/unity-builder@v4.1.3
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -56,60 +56,10 @@ jobs:
           androidExportType: 'androidAppBundle'
           #customParameters: -Development
 
-      - name: Sleep for Retry
-        #if: ${{ steps.build-1.outcome == 'failure' }}
-        run: |
-          sleep 60
-
-      # Retry Build
-      - name: Build (Retry)
-        id: build-2
-        uses: game-ci/unity-builder@v4.1.3
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          targetPlatform: Android
-          buildsPath: Builds
-          buildName: build-2
-          androidKeystoreName: user.keystore
-          androidKeystoreBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASS }}
-          androidKeyaliasName: ${{ secrets.ANDROID_KEYALIAS_NAME }}
-          androidKeyaliasPass: ${{ secrets.ANDROID_KEYALIAS_PASS }}
-          androidExportType: 'androidAppBundle'
-          #customParameters: -Development
-          allowDirtyBuild: true
-
-      - name: Sleep for Retry
-        #if: ${{ steps.build-2.outcome == 'failure' }}
-        run: |
-          sleep 240
-
-      # Retry Build
-      - name: Build (Retry 2)
-        id: build-3
-        uses: game-ci/unity-builder@v4.1.3
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          targetPlatform: Android
-          buildsPath: Builds
-          buildName: build-3
-          androidKeystoreName: user.keystore
-          androidKeystoreBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASS }}
-          androidKeyaliasName: ${{ secrets.ANDROID_KEYALIAS_NAME }}
-          androidKeyaliasPass: ${{ secrets.ANDROID_KEYALIAS_PASS }}
-          androidExportType: 'androidAppBundle'
-          #customParameters: -Development
-          allowDirtyBuild: true
-
       # Output
       - uses: actions/upload-artifact@v4
         with:
-          #name: gta_v${{ steps.build-1.outputs.buildVersion }}.apk
+          #name: gta_v${{ steps.build.outputs.buildVersion }}.apk
           path: Builds #/Android/Android.apk
+
+      - run: git diff
