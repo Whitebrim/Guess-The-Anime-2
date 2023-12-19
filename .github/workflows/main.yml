@@ -63,37 +63,37 @@ jobs:
           name: build-Android
           path: Builds/Android
 
-      releaseToGooglePlay:
-        name: Release to the Google Play Store
-        runs-on: ubuntu-latest
-        needs: buildForAndroidPlatform
-        env:
-          GOOGLE_PLAY_KEY_FILE: ${{ secrets.GOOGLE_PLAY_KEY_FILE }}
-          GOOGLE_PLAY_KEY_FILE_PATH: ${{ github.workspace }}/fastlane/google-fastlane.json
-          ANDROID_BUILD_FILE_PATH: ${{ github.workspace }}/Builds/Android/Android.aab
-          ANDROID_MAPPING_PATH: ${{ github.workspace }}/Builds/Android/Android-${{ steps.build.outputs.buildVersion }}-v1-IL2CPP.symbols.zip
-          ANDROID_PACKAGE_NAME: ${{ vars.ANDROID_PACKAGE_NAME }}
-        steps:
-          - name: Checkout Repository
-            uses: actions/checkout@v4
-          - name: Download Android Artifact
-            uses: actions/download-artifact@v4.1.0
-            with:
-              name: build-Android
-              path: Builds/Android
-          - name: Add Authentication
-            run: echo "$GOOGLE_PLAY_KEY_FILE" > $GOOGLE_PLAY_KEY_FILE_PATH
-          - name: Set up Fastlane
-            uses: ruby/setup-ruby@v1
-            with:
-              ruby-version: 3.2
-              bundler-cache: true
-          - name: Upload to Google Play Internal
-            uses: maierj/fastlane-action@v3.0.0
-            with:
-              lane: 'android internal' # Change to upload to a different lane
-          - name: Cleanup to avoid storage limit
-            if: always()
-            uses: geekyeggo/delete-artifact@v2
-            with:
-              name: build-Android
+  releaseToGooglePlay:
+    name: Release to the Google Play Store
+    runs-on: ubuntu-latest
+    needs: buildForAndroidPlatform
+    env:
+      GOOGLE_PLAY_KEY_FILE: ${{ secrets.GOOGLE_PLAY_KEY_FILE }}
+      GOOGLE_PLAY_KEY_FILE_PATH: ${{ github.workspace }}/fastlane/google-fastlane.json
+      ANDROID_BUILD_FILE_PATH: ${{ github.workspace }}/Builds/Android/Android.aab
+      ANDROID_MAPPING_PATH: ${{ github.workspace }}/Builds/Android/Android-${{ steps.build.outputs.buildVersion }}-v1-IL2CPP.symbols.zip
+      ANDROID_PACKAGE_NAME: ${{ vars.ANDROID_PACKAGE_NAME }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Download Android Artifact
+        uses: actions/download-artifact@v4.1.0
+        with:
+          name: build-Android
+          path: Builds/Android
+      - name: Add Authentication
+        run: echo "$GOOGLE_PLAY_KEY_FILE" > $GOOGLE_PLAY_KEY_FILE_PATH
+      - name: Set up Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2
+          bundler-cache: true
+      - name: Upload to Google Play Internal
+        uses: maierj/fastlane-action@v3.0.0
+        with:
+          lane: 'android internal' # Change to upload to a different lane
+      - name: Cleanup to avoid storage limit
+        if: always()
+        uses: geekyeggo/delete-artifact@v2
+        with:
+          name: build-Android
