@@ -10,6 +10,7 @@ jobs:
       fail-fast: false
     outputs: 
       app-version: ${{ steps.build.outputs.buildVersion }}
+      android-version: ${{ steps.build.outputs.androidVersionCode }}
     steps:
       # Checkout
       - name: Checkout repository
@@ -73,7 +74,7 @@ jobs:
       GOOGLE_PLAY_KEY_FILE: ${{ secrets.GOOGLE_PLAY_KEY_FILE }}
       GOOGLE_PLAY_KEY_FILE_PATH: ${{ github.workspace }}/fastlane/google-fastlane.json
       ANDROID_BUILD_FILE_PATH: ${{ github.workspace }}/Builds/Android/Android.aab
-      ANDROID_MAPPING_PATH: ${{ github.workspace }}/Builds/Android/Android-${{ needs.buildForAndroid.outputs.app-version }}-v1-IL2CPP.symbols.zip
+      ANDROID_MAPPING_PATH: ${{ github.workspace }}/Builds/Android/Android-${{ needs.buildForAndroid.outputs.app-version }}-v${{ needs.buildForAndroid.outputs.android-version }}-IL2CPP.symbols.zip
       ANDROID_PACKAGE_NAME: ${{ vars.ANDROID_PACKAGE_NAME }}
     steps:
       - name: Checkout Repository
