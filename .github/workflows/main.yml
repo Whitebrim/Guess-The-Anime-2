@@ -8,13 +8,29 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      matrix:
+        include:
+          - build_type: debug
+            androidExportType: 'androidPackage'
+            androidSymbolType: 'none'
+            customParameters: '-Development'
+            uploadArtifactVersion: 'v4'
+            artifactName: gta_${{ steps.build.outputs.buildVersion }}.apk
+            artifactPath: Builds/Android/Android.apk
+          - build_type: release
+            androidExportType: 'androidAppBundle'
+            androidSymbolType: 'debugging'
+            customParameters: ''
+            uploadArtifactVersion: 'v3' # v4 is not compatible with geekyeggo/delete-artifact@v2
+            artifactName: release-build-Android
+            artifactPath: Builds/Android
     outputs: 
       app-version: ${{ steps.build.outputs.buildVersion }}
       android-version: ${{ steps.build.outputs.androidVersionCode }}
     steps:
       # Checkout
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.1.1
         with:
           fetch-depth: 0
           lfs: true
@@ -27,17 +43,10 @@ jobs:
           restore-keys: |
             Library-
 
-      #- uses: jlumbroso/free-disk-space@v1.3.1
-              
-      # Test
-      #- name: Run tests
-      #  uses: game-ci/unity-test-runner@v4
-      #  env:
-      #    UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-      #    UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-      #    UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-      #  with:
-      #    githubToken: ${{ secrets.GITHUB_TOKEN }}
+      # Disable Lunar Console
+      - name: Disable Lunar Console
+        if: matrix.build_type == 'release'
+        run: bash Assets/Plugins/LunarConsole/Editor/Automation/disable_lunar_console.sh
 
       # Build
       - name: Build
@@ -49,7 +58,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: Android
-          androidExportType: 'androidAppBundle'
+          androidExportType: ${{ matrix.androidExportType }}
           buildsPath: Builds
           androidKeystoreName: user.keystore
           androidKeystoreBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -57,17 +66,18 @@ jobs:
           androidKeyaliasName: ${{ secrets.ANDROID_KEYALIAS_NAME }}
           androidKeyaliasPass: ${{ secrets.ANDROID_KEYALIAS_PASS }}
           androidTargetSdkVersion: AndroidApiLevel34
-          androidSymbolType: debugging
-          #customParameters: -Development
-
+          androidSymbolType: ${{ matrix.androidSymbolType }}
+          customParameters: ${{ matrix.customParameters }}
+          
       # Output
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@${{ matrix.uploadArtifactVersion }}
+        if: matrix.build_type == 'release'
         with:
-          name: build-Android
-          path: Builds/Android
+          name: ${{ matrix.artifactName }}
+          path: ${{ matrix.artifactPath }}
 
   releaseToGooglePlay:
-    name: Release to the Google Play Store
+    name: Publish to the Google Play Store
     runs-on: ubuntu-latest
     needs: buildForAndroid
     env:
@@ -78,25 +88,30 @@ jobs:
       ANDROID_PACKAGE_NAME: ${{ vars.ANDROID_PACKAGE_NAME }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
-      - name: Download Android Artifact
+        uses: actions/checkout@v4.1.1
+        
+      - name: Download Artifact
         uses: actions/download-artifact@v4.1.0
         with:
-          name: build-Android
+          name: release-build-Android
           path: Builds/Android
+          
       - name: Add Authentication
         run: echo "$GOOGLE_PLAY_KEY_FILE" > $GOOGLE_PLAY_KEY_FILE_PATH
+        
       - name: Set up Fastlane
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.2
           bundler-cache: true
-      - name: Upload to Google Play Internal
+          
+      - name: Upload to Google Play Console
         uses: maierj/fastlane-action@v3.0.0
         with:
           lane: 'android internal' # Change to upload to a different lane
-      - name: Cleanup to avoid storage limit
+          
+      - name: Delete artifact
         if: always()
         uses: geekyeggo/delete-artifact@v2
         with:
-          name: build-Android
+          name: release-build-Android
