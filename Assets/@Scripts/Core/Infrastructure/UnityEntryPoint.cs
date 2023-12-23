@@ -41,7 +41,9 @@ namespace Core.Infrastructure
         {
             Application.targetFrameRate = (int)Math.Max(Screen.currentResolution.refreshRateRatio.value, 60);
             Addressables.InitializeAsync();
+#if LUNAR_CONSOLE_ENABLED
             lunarConsole.InitInstance();
+#endif
             await UnityServices.InitializeAsync();
         }
     }
