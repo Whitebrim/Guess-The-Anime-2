@@ -14,16 +14,10 @@ jobs:
             androidExportType: 'androidPackage'
             androidSymbolType: 'none'
             customParameters: '-Development'
-            uploadArtifactVersion: 'v4'
-            artifactName: gta_${{ steps.build.outputs.buildVersion }}.apk
-            artifactPath: Builds/Android/Android.apk
           - build_type: release
             androidExportType: 'androidAppBundle'
             androidSymbolType: 'debugging'
             customParameters: ''
-            uploadArtifactVersion: 'v3' # v4 is not compatible with geekyeggo/delete-artifact@v2
-            artifactName: release-build-Android
-            artifactPath: Builds/Android
     outputs: 
       app-version: ${{ steps.build.outputs.buildVersion }}
       android-version: ${{ steps.build.outputs.androidVersionCode }}
@@ -69,12 +63,19 @@ jobs:
           androidSymbolType: ${{ matrix.androidSymbolType }}
           customParameters: ${{ matrix.customParameters }}
           
-      # Output
-      - uses: actions/upload-artifact@${{ matrix.uploadArtifactVersion }}
+      # Output Debug
+      - uses: actions/upload-artifact@v4
+        if: matrix.build_type == 'debug'
+        with:
+          name: gta_${{ steps.build.outputs.buildVersion }}.apk
+          path: Builds/Android/Android.apk
+          
+      # Output Release
+      - uses: actions/upload-artifact@v3 # v4 is not compatible with geekyeggo/delete-artifact@v2
         if: matrix.build_type == 'release'
         with:
-          name: ${{ matrix.artifactName }}
-          path: ${{ matrix.artifactPath }}
+          name: release-build-Android
+          path: Builds/Android
 
   releaseToGooglePlay:
     name: Publish to the Google Play Store
