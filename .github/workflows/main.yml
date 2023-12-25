@@ -71,7 +71,7 @@ jobs:
           path: Builds/Android/Android.apk
           
       # Output Release
-      - uses: actions/upload-artifact@v3 # v4 is not compatible with geekyeggo/delete-artifact@v2
+      - uses: actions/upload-artifact@v3 # v4 is not compatible with geekyeggo/delete-artifact@v4
         if: matrix.build_type == 'release'
         with:
           name: release-build-Android
@@ -113,6 +113,6 @@ jobs:
           
       - name: Delete artifact
         if: always()
-        uses: geekyeggo/delete-artifact@v2
+        uses: geekyeggo/delete-artifact@v4
         with:
           name: release-build-Android
