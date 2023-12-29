@@ -115,4 +115,5 @@ jobs:
         if: always()
         uses: geekyeggo/delete-artifact@v4
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           name: release-build-Android
