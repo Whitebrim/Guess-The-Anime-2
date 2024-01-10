@@ -39,7 +39,7 @@ namespace Core.Infrastructure
 
         private async Task ApplicationInit()
         {
-            Application.targetFrameRate = (int)Math.Max(Screen.currentResolution.refreshRate, 60);
+            Application.targetFrameRate = (int)Math.Max(Screen.currentResolution.refreshRateRatio.value, 60);
             Addressables.InitializeAsync();
 #if LUNAR_CONSOLE_ENABLED
             lunarConsole.InitInstance();
