@@ -107,7 +107,7 @@ jobs:
           bundler-cache: true
           
       - name: Upload to Google Play Console
-        uses: maierj/fastlane-action@v3.0.0
+        uses: maierj/fastlane-action@v3.1.0
         with:
           lane: 'android internal' # Change to upload to a different lane
           
