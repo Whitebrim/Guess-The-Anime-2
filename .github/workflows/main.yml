@@ -24,7 +24,7 @@ jobs:
     steps:
       # Checkout
       - name: Checkout repository
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4.1.5
         with:
           fetch-depth: 0
           lfs: true
@@ -89,7 +89,7 @@ jobs:
       ANDROID_PACKAGE_NAME: ${{ vars.ANDROID_PACKAGE_NAME }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4.1.5
         
       - name: Download Artifact
         uses: actions/download-artifact@v4.1.4
